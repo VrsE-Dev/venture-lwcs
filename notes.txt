@@ -1,0 +1,2 @@
+sfdx force:source:convert --rootdir force-app --outputdir tmp_convert\
+sfdx force:mdapi:deploy --zipfile tmp_convert.zip --targetusername partCopy -w 10

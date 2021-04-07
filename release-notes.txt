@@ -1,0 +1,6 @@
+TODO:
+- Add Aurora to "Remote Sites"
+- Add Aurora details in "Named Credentials"
+
+References:
+https://simple-force.com/2018/02/03/best-practice-secure-api-keys-in-salesforce%E2%80%8A-%E2%80%8Aexample-google-firebase/

@@ -1,0 +1,21 @@
+.design-summary { 
+    margin-top: 7px;
+}
+
+.pv-arrays-list {
+    margin-top: 4px;
+    list-style-type: disc;
+}
+
+.toastMessage.forceActionsText{
+    white-space : pre-line !important;
+}
+
+.no-array-error {
+    color: red;
+}
+
+.no-array-error ul {
+    list-style: initial;
+    padding-left: 16px;
+}

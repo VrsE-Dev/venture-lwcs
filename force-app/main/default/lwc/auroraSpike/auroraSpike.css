@@ -19,3 +19,9 @@
     list-style: initial;
     padding-left: 16px;
 }
+
+.saving-spinner {
+    display: block;
+    margin: 25px auto;
+    height: 1px;
+}

@@ -1,0 +1,107 @@
+<template>
+    <div class="new-quote slds-tabs_card">
+        <div class="slds-text-heading--small">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span class="slds-page-header__title slds-truncate" title="Aurora Design">Pull in Aurora Design</span>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="design-summary">
+            <template if:true={loadingDesignSummary}>
+                <template if:false={noAuroraIdOnQuoteError}>
+                    <lightning-spinner 
+                        class="slds-is-relative slds-m-right_x-large"
+                        variant="brand"
+                        alternative-text="Loading" 
+                        size="small"
+                    >
+                    </lightning-spinner>
+                </template>
+            </template>
+            <template if:true={validDesignSummary}>
+                <div><b>Design Name: </b> {projectDesignOverview.name}</div>
+                <div><b>Arrays:</b></div>
+                <ul class="pv-arrays-list slds-m-around_medium">
+                    <template for:each={validArrays} for:item="pvArray">
+                        <li class="pvArray-list-item" key={pvArray.module.id}>
+                            <lightning-formatted-number value={pvArray.shading.total_solar_resource_fraction.annual} format-style="decimal" maximum-fraction-digits="0"></lightning-formatted-number> TSRF, {pvArray.module.count} panels
+                        </li>
+                    </template>
+                </ul>
+            </template>
+        </div>
+
+        <template if:true={noAuroraIdOnQuoteError}>
+            <div style="color:red;">Quote does not have an Aurora ID associated.</div>
+        </template>
+
+        <template if:true={noArrayError}>
+            <div class="no-array-error">
+                <strong>
+                    The design you're trying to retrieve from Aurora is invalid, please check that you've completed each item below to create a valid design in Aurora:
+                </strong>
+                <ul>
+                   <li>Run irradiance (click 'Irradiance')</li>
+                   <li>Run a system simulation (click 'Simulate')</li>
+                   <li>Add and connect Micro-Inverters to all panels</li>
+                   <li>String all system panels (you can click 'Auto String' to do this automatically)</li>
+                </ul>
+            </div>
+        </template>
+
+        <div class="details-footer slds-m-top_small">
+            <template if:true={disabled}>
+                <lightning-spinner 
+                    class="slds-is-relative slds-m-right_x-large saving-spinner"
+                    variant="brand"
+                    alternative-text="Loading" 
+                    size="small"
+                >
+                </lightning-spinner>
+            </template>
+            <template if:false={disabled}>
+                <lightning-button
+                    class="slds-m-right_large"
+                    variant="brand"
+                    type="submit"
+                    name="aurora"
+                    label="Get Design"
+                    onclick={getDesignSummary}
+                    disabled={loadingDesignSummary}
+                >
+                </lightning-button>
+                <lightning-button
+                    class="slds-m-right_large"
+                    variant="brand"
+                    type="submit"
+                    name="save"
+                    label="Save"
+                    onclick={save}
+                    disabled={invalidDesignSummary}
+                >
+                </lightning-button>
+                <template if:true={saveSuccess}>
+                    <lightning-button
+                        variant="neutral"
+                        name="redirect"
+                        label="Go to PV System Page"
+                        onclick={handlePvSystemRedirect}
+                    >
+                    </lightning-button>
+                </template>
+            </template>
+        </div>
+    </div>
+</template>

@@ -7,6 +7,8 @@ import { getRecord } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 import { updateRecord } from 'lightning/uiRecordApi';
 import { createRecord } from 'lightning/uiRecordApi';
+import { getRecordNotifyChange } from 'lightning/uiRecordApi';
+
 
 import getPVModule from '@salesforce/apex/AuroraSpikeController.getPVModule';
 import getProjectDesigns from '@salesforce/apex/AuroraSpikeController.getProjectDesigns';
@@ -50,7 +52,8 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
     @track validDesignSummary = false;
     @track loadingDesignSummary = false;
     @track saveSuccess = false;
-
+    @track disabled = false;
+    
     @track pvSystemUrl;
     @track pvSystemPageRef;
     
@@ -154,6 +157,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
     }
 
     async save() {
+        this.disabled = true;
         this.saveSuccess = false;
         console.log('save kicked off');
         console.log(JSON.stringify(this.quote, undefined, 2));
@@ -176,7 +180,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             console.log('--------------');
             console.log('PVSYSTEMID:', pvSystemId);
             console.log('--------------');
-            this.showToast('success', 'Successfully saved pv system');
+            // this.showToast('success', 'Successfully saved pv system');
 
             let quoteFields = {};
             quoteFields[QUOTE_ID.fieldApiName] = this.recordId;
@@ -184,7 +188,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             quoteFields[QUOTE_AURORA_PRODUCTION.fieldApiName] = this.designSummary.design.energy_production.annual.toString();
 
             await updateRecord({fields: quoteFields});
-            this.showToast('success', `Successfully associated quote with new pv system`);
+            // this.showToast('success', `Successfully associated quote with new pv system`);
 
             console.log(this.designSummary.design.arrays);
             console.log(this.designSummary.design.arrays[0].module);
@@ -215,10 +219,12 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
                         fields: pvArrayFields
                     });
 
-                    this.showToast('success', `Successfully saved pv array ${createdPvArray.id} associated with system`);
+                    // this.showToast('success', `Successfully saved pv array ${createdPvArray.id} associated with system`);
                 });
 
             console.log('completed all saving!!!!!!!!');
+
+            this.showToast('success', 'Successfully saved aurora design information');
 
             this.pvSystemPageRef = {
                 type: 'standard__recordPage',
@@ -251,10 +257,17 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
                 })
 
             this.saveSuccess = true;
+            this.disabled = false;
+
+            getRecordNotifyChange([{
+                recordId: this.recordId
+            }]);
         } catch (e) {
             console.log('error from inside aurora spike save:');
             console.log(JSON.stringify(e, undefined, 2));
             this.saveError = true;
+            this.disabled = false;
+
             this.showToast('error', e);
         }
     }

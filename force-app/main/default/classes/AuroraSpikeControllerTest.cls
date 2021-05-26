@@ -232,7 +232,7 @@ public class AuroraSpikeControllerTest {
         stringQueries.add('queryTwo');
         
         Test.startTest();
-        HttpRequest auroraEndpoint = AuroraSpikecontroller.getAuroraEndpoint('/apiEndpoint', stringQueries);
+        HttpRequest auroraEndpoint = AuroraSpikecontroller.getAuroraEndpoint('/apiEndpoint', 'GET', stringQueries);
         Test.stopTest();
         
         System.assertEquals('GET', auroraEndpoint.getMethod());

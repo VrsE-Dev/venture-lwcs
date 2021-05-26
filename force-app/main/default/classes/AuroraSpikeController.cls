@@ -142,7 +142,7 @@ public with sharing class AuroraSpikeController {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId = auroraSettings.Tenant_Id__c;
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/' + projectId + '/designs'); 
+        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/' + projectId + '/designs', 'GET'); 
 
         String strResponse = null;
         try {  
@@ -167,13 +167,49 @@ public with sharing class AuroraSpikeController {
         }
     }
     
+    public static string createAuroraProject(Site__c site){
+        System.debug('Site Id: ' + site.Id);
+        Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
+        String tenantId  = auroraSettings.Tenant_Id__c;
+        // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
+        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/' + designId + '/summary', 'POST'); 
+
+        String requestBody = '{'+
+            '"Name":"' + site.Account__c.BillingAddress + ',' +
+            '"Address":' + site.Account__c.BillingAddress + ',' +
+            '"Type":"Residential",' +
+            '"OwnerId:' + site.Account__c.OwnerId + '}';
+            //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
+
+        httpRequest.setBody(requestBody);
+        String strResponse = null;
+        try {  
+         	Http http = new Http();   
+            HttpResponse httpResponse = http.send(httpRequest);  
+            if (httpResponse.getStatusCode() == 200 ) {  
+                strResponse = httpResponse.getBody();  
+                System.debug(strResponse);
+                site.Aurora_Project_Id__c = strResponse;
+                update site;
+            } 
+            else {  
+                throw new CalloutException(httpResponse.getBody());  
+            }
+        }
+        catch(Exception ex) {  
+            throw ex;  
+        } 
+
+        
+    }
+
     @AuraEnabled(Cacheable=true)
     public static string getDesignSummary(String designId){
         System.debug('Design Id: ' + designId);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId  = auroraSettings.Tenant_Id__c;
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/designs/' + designId + '/summary'); 
+        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/designs/' + designId + '/summary', 'GET'); 
 
         String strResponse = null;
         try {  
@@ -200,13 +236,13 @@ public with sharing class AuroraSpikeController {
     }
     
     @TestVisible 
-    private static HttpRequest getAuroraEndpoint(String apiEndpoint) {
+    private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod) {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String baseUrl   = auroraSettings.Base_URL__c;
         // String baseUrl   = 'https://api-sandbox.aurorasolar.com';
         String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
         // String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
-        String requestVerb = 'GET';
+        String requestVerb = httpMethod;
         
         System.debug('unencoded time: ' + Datetime.now());
         String timestamp = 'Timestamp=' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20');
@@ -227,11 +263,11 @@ public with sharing class AuroraSpikeController {
     }
     
     @TestVisible 
-    private static HttpRequest getAuroraEndpoint(String apiEndpoint, List<String> stringQueries) {
+    private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod, List<String> stringQueries) {
         String baseUrl   = 'https://api-sandbox.aurorasolar.com';
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
-        String requestVerb = 'GET';
+        String requestVerb = httpMethod;
         
         System.debug('unencoded time: ' + Datetime.now());
         String timestamp = 'Timestamp=' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20');

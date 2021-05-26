@@ -7,6 +7,7 @@ import { getRecord } from 'lightning/uiRecordApi';
 
 import getProjectDesigns from '@salesforce/apex/AuroraSpikeController.getProjectDesigns';
 import getDesignSummary from '@salesforce/apex/AuroraSpikeController.getDesignSummary';
+import createNewAuroraProject from '@salesforce/apex/AuroraSpikeController.createAuroraProject';
 
 import getAllowedArrays from '@salesforce/apex/SystemOptimizerController.getAllowedArrays';
 
@@ -123,6 +124,10 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             // });
             this.showToast('success', `Successfully cloned pvArray ${pvArray.Id}`);
         });
+    }
+
+    async createNewAuroraProject(){
+        await createNewAuroraProject(site);
     }
 
     /**

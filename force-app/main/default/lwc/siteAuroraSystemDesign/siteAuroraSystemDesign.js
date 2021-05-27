@@ -3,31 +3,32 @@
 /* eslint-disable no-console */
 import { LightningElement, api, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
-import { getRecord } from 'lightning/uiRecordApi';
+import { createRecord, getRecord } from 'lightning/uiRecordApi';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 
 import getProjectDesigns from '@salesforce/apex/AuroraSpikeController.getProjectDesigns';
 import getDesignSummary from '@salesforce/apex/AuroraSpikeController.getDesignSummary';
 
-import getAllowedArrays from '@salesforce/apex/SystemOptimizerController.getAllowedArrays';
+import getAllowedArrays from '@salesforce/apex/SiteAuroraSystemDesignController.getAllowedArrays';
 
+import ALLOWED_ARRAY from '@salesforce/schema/Allowed_Array__c';
 import ALLOWED_ARRAY_NAME from '@salesforce/schema/Allowed_Array__c.Name';
 import ALLOWED_ARRAY_NUMBER_OF_PANELS__C  from '@salesforce/schema/Allowed_Array__c.Number_of_Panels__c';
 import ALLOWED_ARRAY_SITE__C from '@salesforce/schema/Allowed_Array__c.Site__c';
 import ALLOWED_ARRAY_TSRF__C from '@salesforce/schema/Allowed_Array__c.TSRF__c';
 
-import SITE_ID from '@salesforce/schema/Site.Id';
-import SITE_ACCOUNT_ID from '@salesforce/schema/Site.AccountId';
-import SITE_AURORA_PROJECT_ID from '@salesforce/schema/Site.Aurora_Project_Id__c';
+import SITE_ID from '@salesforce/schema/Site__c.Id';
+import SITE_ACCOUNT_ID from '@salesforce/schema/Site__c.Account__c';
+import SITE_AURORA_PROJECT_ID from '@salesforce/schema/Site__c.Aurora_Project_Id__c';
 
-export default class AuroraSpike extends NavigationMixin(LightningElement) {
+export default class SiteAuroraSystemDesign extends NavigationMixin(LightningElement) {
     @track site;
 
     @track projectDesignOverview;
-    @track designSummary;
     @track validArrays;
     @track existingAllowedArrays;
 
-    @track noAuroraIdOnQuoteError = false;
+    @track noAuroraIdOnSiteError = false;
     @track noArrayError = false;
     @track saveError = false;
     @track getDesignError  = false;
@@ -71,7 +72,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             if(!this.site.Aurora_Project_Id__c) {
                 console.log('site has no aurora id');
                 this.loadingDesignSummary = true;
-                this.noAuroraIdOnQuoteError = true;
+                this.noAuroraIdOnSiteError = true;
             }
         } else if (error) {
             console.log('Error getting quote data:');
@@ -79,7 +80,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
         }
     }
 
-    async getDesignSummary() {
+    async getAuroraProject() {
         this.loadingDesignSummary = true;
         this.invalidDesignSummary = true;
         this.validDesignSummary   = false;
@@ -90,10 +91,9 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
         console.log(this.site.Aurora_Project_Id__c);
 
         try {
-            const unparsedProjectDesigns = await getProjectDesigns({projectId: this.site.Aurora_Project_Id__c});
-            this.validateAuroraResponse(unparsedProjectDesigns);
-            this.existingAllowedArrays = await this.getAllowedArrays(this.site.AccountId);
-        
+            this.projectDesignOverview = await this.getProjectDesignOverview();
+            this.validArrays = await this.getProjectArrays(this.projectDesignOverview.id);
+            this.existingAllowedArrays = await this.getAllowedArrays(this.site.Account__c);
         } catch (e) {
             console.log(e);
             this.getDesignError = true;
@@ -107,21 +107,21 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
      * Creates allowed arrays based off valid arrays design response
      */
     async createAllowedArrays() {
-        this.validArrays.forEach(() => {
-            // create allowable array
-            let allowableArrayField = {};
-            allowableArrayField[ALLOWED_ARRAY_NAME.fieldApiName] = pvArray.Array_Size__c;
-            allowableArrayField[ALLOWED_ARRAY_NUMBER_OF_PANELS__C.fieldApiName] = pvArray.Number_of_Panels__c;
-            allowableArrayField[ALLOWED_ARRAY_SITE__C.fieldApiName] = pvArray.Selected_Equipment__c;
-            allowableArrayField[ALLOWED_ARRAY_TSRF__C.fieldApiName] = pvArray.TSRF__c;
+        this.validArrays.forEach(async (pvArray) => {
+            // create allowed array
+            let allowedArrayFields = {};
+            allowedArrayFields[ALLOWED_ARRAY_NAME.fieldApiName] = pvArray.Array_Size__c;
+            allowedArrayFields[ALLOWED_ARRAY_NUMBER_OF_PANELS__C.fieldApiName] = pvArray.Number_of_Panels__c;
+            allowedArrayFields[ALLOWED_ARRAY_SITE__C.fieldApiName] = pvArray.Selected_Equipment__c;
+            allowedArrayFields[ALLOWED_ARRAY_TSRF__C.fieldApiName] = pvArray.TSRF__c;
 
-            console.log('pvArray:');
-            console.log(JSON.stringify(pvArrayFields, undefined, 2));
-            // await createRecord({
-            //     apiName: PV_ARRAY__C.objectApiName,
-            //     fields: pvArrayFields
-            // });
-            this.showToast('success', `Successfully cloned pvArray ${pvArray.Id}`);
+            console.log('allowedArray:');
+            console.log(JSON.stringify(allowedArrayFields, undefined, 2));
+            await createRecord({
+                apiName: ALLOWED_ARRAY.objectApiName,
+                fields: allowedArrayFields
+            });
+            this.showToast('success', `Successfully created allowed array ${pvArray.Id}`);
         });
     }
 
@@ -137,42 +137,61 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
         await this.createAllowedArrays();
     }
 
-    static validateAuroraResponse(unparsedProjectDesigns) {
+    /**
+     * Parses project design and validates it, returning design id if valid
+     * throwing error otherwise
+     * @returns design object
+     */
+    async getProjectDesignOverview() {
+        const unparsedProjectDesigns = await getProjectDesigns({projectId: this.site.Aurora_Project_Id__c});
+        const projectDesigns = JSON.parse(unparsedProjectDesigns);
         console.log('Project designs---');
-        let projectDesigns = JSON.parse(unparsedProjectDesigns);
         console.log(JSON.stringify(projectDesigns, undefined, 2));
 
         if(projectDesigns.designs && projectDesigns.designs.length > 0) {
             //Get specific design id
-            this.projectDesignOverview = projectDesigns.designs[0];
-
-            const unParsedDesignSummary = await getDesignSummary({designId: this.projectDesignOverview.id});
-            this.designSummary = JSON.parse(unParsedDesignSummary);
-            console.log('Design summary---');
-            console.log(JSON.stringify(this.designSummary, undefined, 2));
-
-            // map design summary arrays to pv arrays
-            if(this.designSummary.design.arrays && this.designSummary.design.arrays.length > 0) {
-                this.validArrays = this.designSummary.design.arrays
-                    .filter(pvArray => pvArray.shading && pvArray.shading.total_solar_resource_fraction && pvArray.shading.total_solar_resource_fraction.annual)
-    
-                if(this.validArrays.length > 0) {
-                    this.invalidDesignSummary = false;
-                    this.validDesignSummary = true;
-                    this.loadingDesignSummary = false;
-                } else {
-                    throw new Error('Design summary invalid - Check that irradiance has been run on design');
-                }
-            } else {
-                this.noArrayError = true;
-                throw new Error(`Design summary invalid - See message for details`);
-            }
+            return projectDesigns.designs[0];
         } else {
             throw new Error('Design summary invalid - Found no designs');
         }
     }
 
-    static getAllowedArrays(accountId) {
+    /**
+     * Grabs design summary and parses it for valid arrays
+     * @param {number} projectDesignOverviewId 
+     * @returns array object of valid project arrays
+     */
+    async getProjectArrays(projectDesignOverviewId) {
+        const unParsedDesignSummary = await getDesignSummary({designId: projectDesignOverviewId});
+        const designSummary = JSON.parse(unParsedDesignSummary);
+        console.log('Design summary---');
+        console.log(JSON.stringify(designSummary, undefined, 2));
+
+        // map design summary arrays to pv arrays
+        if(designSummary.design.arrays && designSummary.design.arrays.length > 0) {
+            const validArrays = designSummary.design.arrays
+                .filter(pvArray => pvArray.shading && pvArray.shading.total_solar_resource_fraction && pvArray.shading.total_solar_resource_fraction.annual)
+
+            if(validArrays.length > 0) {
+                this.invalidDesignSummary = false;
+                this.validDesignSummary = true;
+                this.loadingDesignSummary = false;
+                return validArrays;
+            } else {
+                throw new Error('Design summary invalid - Check that irradiance has been run on design');
+            }
+        } else {
+            this.noArrayError = true;
+            throw new Error(`Design summary invalid - See message for details`);
+        }
+    }
+
+    /**
+     * Hits Apex class to grab allowed arrays and returns them
+     * @param {string} accountId 
+     * @returns array of allowed arrays
+     */
+    async getAllowedArrays(accountId) {
         try {
             let data = await getAllowedArrays({
                 accountId: accountId
@@ -189,6 +208,16 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
         } catch(e) {
             console.log('got error:', e);
             this.error = true;
+            throw new Error('Allowed Arrays error - Error getting allowed arrays:', e);
         }
+    }
+
+    showToast(variant, message) {
+        const toast = new ShowToastEvent({
+            title: variant.charAt(0).toUpperCase() + variant.slice(1),
+            message,
+            variant
+        })
+        this.dispatchEvent(toast);
     }
 }

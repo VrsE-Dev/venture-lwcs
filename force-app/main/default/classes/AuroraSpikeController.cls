@@ -172,13 +172,15 @@ public with sharing class AuroraSpikeController {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId  = auroraSettings.Tenant_Id__c;
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/' + designId + '/summary', 'POST'); 
+        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 
-        String requestBody = '{'+
-            '"Name":"' + site.Account__c.BillingAddress + ',' +
-            '"Address":' + site.Account__c.BillingAddress + ',' +
-            '"Type":"Residential",' +
-            '"OwnerId:' + site.Account__c.OwnerId + '}';
+        String requestBody = '"project":{'+
+            '"name":"' + site.Account__c.BillingAddress + ',' +
+            '"customer_first_name":"' + site.Account__c.FirstContact + ',' +
+            '"customer_last_name":"' + site.Account__c.FirstContact + ',' +
+            '"customer_address":' + site.Account__c.BillingAddress + ',' +
+            '"project_type":"residential",' +
+            '"external_provider_id:' + site.Account__c.OwnerId + '}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
         httpRequest.setBody(requestBody);
@@ -186,10 +188,10 @@ public with sharing class AuroraSpikeController {
         try {  
          	Http http = new Http();   
             HttpResponse httpResponse = http.send(httpRequest);  
-            if (httpResponse.getStatusCode() == 200 ) {  
+            if (httpResponse.getStatusCode() == 200) {  
                 strResponse = httpResponse.getBody();  
                 System.debug(strResponse);
-                site.Aurora_Project_Id__c = strResponse;
+                site.Aurora_Project_Id__c = strResponse['project']['id'];
                 update site;
             } 
             else {  
@@ -200,6 +202,7 @@ public with sharing class AuroraSpikeController {
             throw ex;  
         } 
 
+        return strResponse;
         
     }
 

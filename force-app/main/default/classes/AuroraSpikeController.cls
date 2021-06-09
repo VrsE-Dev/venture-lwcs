@@ -167,6 +167,28 @@ public with sharing class AuroraSpikeController {
         }
     }
     
+    public static string getAccountOwnerUser(string userId){
+        try{
+            User newUser = new User();
+
+            user = [
+                SELECT
+                    id, 
+                    Full_Name_c
+                FROM 
+                    User
+                WHERE
+                    id:userId
+                LIMIT 1
+            ].get(0);
+            return user;
+        }
+        catch(Exception e) {
+            throw new AuraHandledException('Couldnt find User associated with UserId: ' + userId);
+        }
+    }
+
+    @AuraEnabled(Cacheable=true)
     public static string createAuroraProject(Site__c site){
         System.debug('Site Id: ' + site.Id);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
@@ -174,10 +196,14 @@ public with sharing class AuroraSpikeController {
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 
+        var userName = await getAccountOwnerUser(site.Account__c.OwnerId);
+        string fullName = userName.Full_Name_c;
+        var names = fullName.split(' ');
+
         String requestBody = '"project":{'+
             '"name":"' + site.Account__c.BillingAddress + ',' +
-            '"customer_first_name":"' + site.Account__c.FirstContact + ',' +
-            '"customer_last_name":"' + site.Account__c.FirstContact + ',' +
+            '"customer_first_name":"' + names[0] + ',' +
+            '"customer_last_name":"' + names[1] + ',' +
             '"customer_address":' + site.Account__c.BillingAddress + ',' +
             '"project_type":"residential",' +
             '"external_provider_id:' + site.Account__c.OwnerId + '}';

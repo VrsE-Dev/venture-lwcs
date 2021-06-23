@@ -1,6 +1,6 @@
 public with sharing class SiteAuroraSystemDesignController {
 
-    @AuraEnabled(Cacheable=true)
+    @AuraEnabled(Cacheable=false)
     public static List<Allowed_Array__c> getAllowedArrays(String siteId) {
         List<Allowed_Array__c> allowedArrays = new List<Allowed_Array__c>();
         

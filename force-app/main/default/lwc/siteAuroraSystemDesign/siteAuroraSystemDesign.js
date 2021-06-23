@@ -3,7 +3,7 @@
 /* eslint-disable no-console */
 import { LightningElement, api, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
-import { createRecord, getRecord } from 'lightning/uiRecordApi';
+import { createRecord, getRecord, deleteRecord } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 
 import getProjectDesigns from '@salesforce/apex/AuroraSpikeController.getProjectDesigns';
@@ -28,15 +28,6 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
     @track validArrays;
     @track existingAllowedArrays;
 
-    @track noAuroraIdOnSiteError = false;
-    @track noArrayError = false;
-    @track saveError = false;
-    @track getDesignError  = false;
-    @track invalidDesignSummary = true;
-    @track validDesignSummary = false;
-    @track loadingDesignSummary = false;
-    @track saveSuccess = false;
-    @track disabled = false;
     
     @track pvSystemUrl;
     @track pvSystemPageRef;
@@ -44,6 +35,16 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
     @track selectedPVModule;
 
     @api recordId;
+
+    // state booleans
+    @track invalidDesignSummary = false;
+    @track gotDesign = false;
+    @track loading = false;
+    @track areExistingAllowedArrays = false;
+
+    @track noArrayError = false;
+    @track noAuroraIdOnSiteError = false;
+
 
     @wire(
         getRecord,
@@ -56,13 +57,14 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
             ]
         }
     )
-    getQuote({error, data}) {
+    async getQuote({error, data}) {
         if (data) {
+            this.resetValues();
             console.log('data.fields:');
             console.log(JSON.stringify(data.fields));
 
             this.site = {};
-            Object.keys(data.fields).map((v, k) => {
+            Object.keys(data.fields).map((v) => {
                 this.site[v] = data.fields[v].value;
             });
 
@@ -71,8 +73,16 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
 
             if(!this.site.Aurora_Project_Id__c) {
                 console.log('site has no aurora id');
-                this.loadingDesignSummary = true;
+                this.loading = true;
                 this.noAuroraIdOnSiteError = true;
+            } else {
+                this.existingAllowedArrays = await this.getAllowedArrays();
+
+                if(this.existingAllowedArrays.length > 0) {
+                    this.areExistingAllowedArrays = true
+                    console.log('areExistingAllowedarrays');
+                    console.log(this.areExistingAllowedArrays);
+                }
             }
         } else if (error) {
             console.log('Error getting quote data:');
@@ -81,11 +91,9 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
     }
 
     async getAuroraProject() {
-        this.loadingDesignSummary = true;
+        this.loading = true;
         this.invalidDesignSummary = true;
-        this.validDesignSummary   = false;
         this.noArrayError = false;
-        this.getDesignError = false;
 
         console.log('this.site.Aurora_Project_Id__c:');
         console.log(this.site.Aurora_Project_Id__c);
@@ -93,11 +101,10 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
         try {
             this.projectDesignOverview = await this.getProjectDesignOverview();
             this.validArrays = await this.getProjectArrays(this.projectDesignOverview.id);
-            this.existingAllowedArrays = await this.getAllowedArrays(this.site.Account__c);
+            
         } catch (e) {
             console.log(e);
-            this.getDesignError = true;
-            this.loadingDesignSummary = false;
+            this.loading = false;
             const msg = e.body && e.body.message ? JSON.stringify(e.body.message, undefined, 2) : e.message;
             this.showToast('error', 'Error getting design:' + msg);
         }
@@ -110,10 +117,10 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
         this.validArrays.forEach(async (pvArray) => {
             // create allowed array
             let allowedArrayFields = {};
-            allowedArrayFields[ALLOWED_ARRAY_NAME.fieldApiName] = pvArray.Array_Size__c;
-            allowedArrayFields[ALLOWED_ARRAY_NUMBER_OF_PANELS__C.fieldApiName] = pvArray.Number_of_Panels__c;
-            allowedArrayFields[ALLOWED_ARRAY_SITE__C.fieldApiName] = pvArray.Selected_Equipment__c;
-            allowedArrayFields[ALLOWED_ARRAY_TSRF__C.fieldApiName] = pvArray.TSRF__c;
+            // allowedArrayFields[ALLOWED_ARRAY_NAME.fieldApiName] = pvArray?.module?.name;
+            allowedArrayFields[ALLOWED_ARRAY_NUMBER_OF_PANELS__C.fieldApiName] = pvArray?.module?.count;
+            allowedArrayFields[ALLOWED_ARRAY_SITE__C.fieldApiName] = this.site.Id;
+            allowedArrayFields[ALLOWED_ARRAY_TSRF__C.fieldApiName] = pvArray?.shading?.total_solar_resource_fraction?.annual;
 
             console.log('allowedArray:');
             console.log(JSON.stringify(allowedArrayFields, undefined, 2));
@@ -121,8 +128,9 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
                 apiName: ALLOWED_ARRAY.objectApiName,
                 fields: allowedArrayFields
             });
-            this.showToast('success', `Successfully created allowed array ${pvArray.Id}`);
         });
+
+        this.showToast('success', `Successfully created allowed arrays`);
     }
 
     /**
@@ -130,11 +138,30 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
      * create allowed arrays
      */
     async overwriteAllowedArrays() { 
-        this.existingAllowedArrays.forEach(() => {
-            // delete existing arrays
-        });
+        for(let i = 0; i < this.existingAllowedArrays.length; i++) {
+            const existingAllowedArray = this.existingAllowedArrays[i];
+            // eslint-disable-next-line no-await-in-loop
+            await deleteRecord(existingAllowedArray.Id);
+
+        }
 
         await this.createAllowedArrays();
+    }
+
+
+    cancel() {
+        this.resetValues();
+    }
+
+    resetValues() {
+        this.invalidDesignSummary = false;
+        this.gotDesign = false;
+        this.loading = false;
+        this.areExistingAllowedArrays = false;
+
+        this.noArrayError = false;
+        this.noAuroraIdOnSiteError = false;
+
     }
 
     /**
@@ -174,8 +201,8 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
 
             if(validArrays.length > 0) {
                 this.invalidDesignSummary = false;
-                this.validDesignSummary = true;
-                this.loadingDesignSummary = false;
+                this.loading = false;
+                this.gotDesign = true;
                 return validArrays;
             } else {
                 throw new Error('Design summary invalid - Check that irradiance has been run on design');
@@ -191,10 +218,10 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
      * @param {string} accountId 
      * @returns array of allowed arrays
      */
-    async getAllowedArrays(accountId) {
+    async getAllowedArrays() {
         try {
             let data = await getAllowedArrays({
-                accountId: accountId
+                siteId: this.site.Id
             });
 
             console.log('got allowed arrays:');
@@ -220,4 +247,5 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
         })
         this.dispatchEvent(toast);
     }
+
 }

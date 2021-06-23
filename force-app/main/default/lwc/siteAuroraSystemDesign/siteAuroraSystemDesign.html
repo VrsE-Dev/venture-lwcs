@@ -19,7 +19,7 @@
         </div>
 
         <div class="design-summary">
-            <template if:true={loadingDesignSummary}>
+            <template if:true={loading}>
                 <template if:false={noAuroraIdOnSiteError}>
                     <lightning-spinner 
                         class="slds-is-relative slds-m-right_x-large"
@@ -30,7 +30,7 @@
                     </lightning-spinner>
                 </template>
             </template>
-            <template if:true={validDesignSummary}>
+            <template if:true={gotDesign}>
                 <div><b>Design Name: </b> {projectDesignOverview.name}</div>
                 <div><b>Arrays:</b></div>
                 <ul class="pv-arrays-list slds-m-around_medium">
@@ -62,16 +62,7 @@
         </template>
 
         <div class="details-footer slds-m-top_small">
-            <template if:true={disabled}>
-                <lightning-spinner 
-                    class="slds-is-relative slds-m-right_x-large saving-spinner"
-                    variant="brand"
-                    alternative-text="Loading" 
-                    size="small"
-                >
-                </lightning-spinner>
-            </template>
-            <template if:false={disabled}>
+            <template if:false={gotDesign}>
                 <lightning-button
                     class="slds-m-right_large"
                     variant="brand"
@@ -79,9 +70,11 @@
                     name="aurora"
                     label="Get Design"
                     onclick={getAuroraProject}
-                    disabled={loadingDesignSummary}
+                    disabled={loading}
                 >
                 </lightning-button>
+            </template>
+            <template if:true={gotDesign}>
                 <template if:false={areExistingAllowedArrays}>
                     <lightning-button
                         class="slds-m-right_large"
@@ -106,15 +99,13 @@
                     >
                     </lightning-button>
                 </template>
-                <template if:true={saveSuccess}>
-                    <lightning-button
-                        variant="neutral"
-                        name="redirect"
-                        label="Go to PV System Page"
-                        onclick={handlePvSystemRedirect}
-                    >
-                    </lightning-button>
-                </template>
+                <lightning-button
+                    variant="neutral"
+                    name="cancel"
+                    label="Cancel"
+                    onclick={cancel}
+                >
+                </lightning-button>
             </template>
         </div>
     </div>

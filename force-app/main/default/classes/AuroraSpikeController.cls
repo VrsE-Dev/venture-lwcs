@@ -167,21 +167,23 @@ public with sharing class AuroraSpikeController {
         }
     }
     
+    @AuraEnabled(Cacheable=true)
     private static string getContactName(string accountId){
         try{
-            Contact newUser = new Contact();
+            Contact user = new Contact();
 
             user = [
                 SELECT
                     id, 
-                    Full_Name_c
+                    Full_Name_c,
+                    AccountId
                 FROM 
                     Contact
                 WHERE
-                    AccountId:accountId
+                    AccountId = :accountId
                 LIMIT 1
             ].get(0);
-            return user;
+            return user.Full_Name_c;
         }
         catch(Exception e) {
             throw new AuraHandledException('Couldnt find Contact associated with AccountId: ' + accountId);
@@ -196,9 +198,9 @@ public with sharing class AuroraSpikeController {
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 
-        var userName = await getContactName(site.Account__c.OwnerId);
+        string userName = await getContactName(site.Account__c.OwnerId).;
         string fullName = userName.Full_Name_c;
-        var names = fullName.split(' ');
+        string[] names = fullName.split(' ');
 
         String requestBody = '"project":{'+
             '"name":"' + site.Account__c.BillingAddress + ',' +

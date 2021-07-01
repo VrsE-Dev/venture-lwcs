@@ -191,25 +191,23 @@ public with sharing class AuroraSpikeController {
     }
 
     @AuraEnabled(Cacheable=true)
-    public static string createAuroraProject(Site__c site){
+    public static string createAuroraProject(Site__c site, Account__c siteAccount){
         System.debug('Site Id: ' + site.Id);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId  = auroraSettings.Tenant_Id__c;
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 
-        string accountId = await getSiteFields(site.Id).Account__c.Id;
-
-        string userName = await getContactName(accountId);
+        string userName = await getContactName(siteAccount.Id);
         string[] names = userName.split(' ');
 
         String requestBody = '"project":{'+
-            '"name":"' + site.Account__c.BillingAddress + ',' +
+            '"name":"' + siteAccount.BillingAddress + ',' +
             '"customer_first_name":"' + names[0] + ',' +
             '"customer_last_name":"' + names[1] + ',' +
-            '"customer_address":' + site.Account__c.BillingAddress + ',' +
+            '"customer_address":' + siteAccount.BillingAddress + ',' +
             '"project_type":"residential",' +
-            '"external_provider_id:' + site.Account__c.OwnerId + '}';
+            '"external_provider_id:' + siteAccount.OwnerId + '}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
         httpRequest.setBody(requestBody);

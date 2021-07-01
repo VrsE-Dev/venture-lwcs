@@ -114,7 +114,7 @@ public with sharing class AuroraSpikeController {
     }
 
     @AuraEnabled(Cacheable=true)
-    public static Site__c getSiteFields(String accountId){
+    public static Site__c getSiteFields(String siteId){
         try {
             Site__c site = new Site__c();
     
@@ -126,7 +126,7 @@ public with sharing class AuroraSpikeController {
                 FROM 
                     Site__c
                 WHERE
-                    Account__c = :accountId
+                    Id = :siteId
                 LIMIT
                     1
             ].get(0);
@@ -175,7 +175,7 @@ public with sharing class AuroraSpikeController {
             user = [
                 SELECT
                     id, 
-                    Full_Name_c,
+                    Full_Name__c,
                     AccountId
                 FROM 
                     Contact
@@ -183,7 +183,7 @@ public with sharing class AuroraSpikeController {
                     AccountId = :accountId
                 LIMIT 1
             ].get(0);
-            return user.Full_Name_c;
+            return user.Full_Name__c;
         }
         catch(Exception e) {
             throw new AuraHandledException('Couldnt find Contact associated with AccountId: ' + accountId);
@@ -198,9 +198,10 @@ public with sharing class AuroraSpikeController {
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 
-        string userName = await getContactName(site.Account__c.OwnerId).;
-        string fullName = userName.Full_Name_c;
-        string[] names = fullName.split(' ');
+        string accountId = await getSiteFields(site.Id).Account__c.Id;
+
+        string userName = await getContactName(accountId);
+        string[] names = userName.split(' ');
 
         String requestBody = '"project":{'+
             '"name":"' + site.Account__c.BillingAddress + ',' +

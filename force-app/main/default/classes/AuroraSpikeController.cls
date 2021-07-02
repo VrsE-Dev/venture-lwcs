@@ -178,11 +178,11 @@ public with sharing class AuroraSpikeController {
                 SELECT
                     id, 
                     Full_Name__c,
-                    Account
+                    AccountId
                 FROM 
                     Contact
                 WHERE
-                    Account = :accountId
+                    AccountId = :accountId
                 LIMIT 1
             ].get(0);
             return user.Full_Name__c;

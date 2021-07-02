@@ -145,7 +145,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             //Get specific design id
             this.projectDesignOverview = projectDesigns.designs[0];
 
-            const unParsedDesignSummary = await getDesignSummary({designId: this.projectDesignOverview.id});
+            const unParsedDesignSummary = getDesignSummary({designId: this.projectDesignOverview.id});
             this.designSummary = JSON.parse(unParsedDesignSummary);
             console.log('Design summary---');
             console.log(JSON.stringify(this.designSummary, undefined, 2));

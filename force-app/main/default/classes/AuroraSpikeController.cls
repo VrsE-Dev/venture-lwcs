@@ -221,7 +221,7 @@ public with sharing class AuroraSpikeController {
                 strResponse = httpResponse.getBody();  
                 System.debug(strResponse);
                 //site.Aurora_Project_Id__c = strResponse['project']['id'];
-                update site;
+                //update site;
             } 
             else {  
                 throw new CalloutException(httpResponse.getBody());  

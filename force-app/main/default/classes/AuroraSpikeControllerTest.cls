@@ -217,7 +217,7 @@ public class AuroraSpikeControllerTest {
         configureCustomSettings();
 
         Test.startTest();
-        HttpRequest auroraEndpoint = AuroraSpikecontroller.getAuroraEndpoint('/apiEndpoint');
+        HttpRequest auroraEndpoint = AuroraSpikecontroller.getAuroraEndpoint('/apiEndpoint', 'GET');
         Test.stopTest();
         
         System.assertEquals('GET', auroraEndpoint.getMethod());

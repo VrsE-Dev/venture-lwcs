@@ -178,11 +178,11 @@ public with sharing class AuroraSpikeController {
                 SELECT
                     id, 
                     Full_Name__c,
-                    AccountId
+                    Account
                 FROM 
                     Contact
                 WHERE
-                    AccountId = :accountId
+                    Account = :accountId
                 LIMIT 1
             ].get(0);
             return user.Full_Name__c;
@@ -200,7 +200,7 @@ public with sharing class AuroraSpikeController {
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 
-        Account__c account = await getAccountFields(siteAccount);
+        Account account = await getAccountFields(siteAccount);
         string userName = await getContactName(siteAccount);
         string[] names = userName.split(' ');
 

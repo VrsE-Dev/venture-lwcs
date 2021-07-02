@@ -16,7 +16,7 @@ import ALLOWED_ARRAY_SITE__C from '@salesforce/schema/Allowed_Array__c.Site__c';
 import ALLOWED_ARRAY_TSRF__C from '@salesforce/schema/Allowed_Array__c.TSRF__c';
 
 import SITE_ID from '@salesforce/schema/Site.Id';
-import SITE_ACCOUNT_ID from '@salesforce/schema/Site.Account__c.Id';
+import SITE_ACCOUNTID from '@salesforce/schema/Site.AccountId';
 import SITE_AURORA_PROJECT_ID from '@salesforce/schema/Site.Aurora_Project_Id__c';
 
 export default class AuroraSpike extends NavigationMixin(LightningElement) {
@@ -50,7 +50,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             recordId: '$recordId',
             fields: [
                 SITE_ID,
-                SITE_ACCOUNT_ID,
+                SITE_ACCOUNTID,
                 SITE_AURORA_PROJECT_ID
             ]
         }

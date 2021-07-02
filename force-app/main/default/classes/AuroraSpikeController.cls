@@ -135,7 +135,7 @@ public with sharing class AuroraSpikeController {
     
             return site;
         } catch(Exception e) {
-            throw new AuraHandledException('Couldnt find Site associated with Account Id: ' + accountId);
+            throw new AuraHandledException('Couldnt find Site associated with Account Id: ' + siteId);
         }
     }
 
@@ -193,21 +193,20 @@ public with sharing class AuroraSpikeController {
     }
 
     @AuraEnabled(Cacheable=true)
-    public static string createAuroraProject(string site, string siteAccount){
+    public static string createAuroraProject(String site, String siteAccount){
         //System.debug('Site Id: ' + site.Id);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId  = auroraSettings.Tenant_Id__c;
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 
-        Account account = await getAccountFields(siteAccount);
-        string userName = await getContactName(siteAccount);
-        string[] names = userName.split(' ');
+        Account account = getAccountFields(siteAccount);
+        String userName = getContactName(siteAccount);
 
         String requestBody = '"project":{'+
             '"name":"' + account.BillingAddress + ',' +
-            '"customer_first_name":"' + names[0] + ',' +
-            '"customer_last_name":"' + names[1] + ',' +
+            '"customer_first_name":"' + userName + ',' +
+            '"customer_last_name":"' + userName + ',' +
             '"customer_address":' + account.BillingAddress + ',' +
             '"project_type":"residential",' +
             '"external_provider_id:' + account.OwnerId + '}';

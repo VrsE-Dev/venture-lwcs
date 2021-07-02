@@ -1,5 +1,6 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
+import { getRecord } from 'lightning/uiRecordApi';
 
 import createNewAuroraProject from '@salesforce/apex/AuroraSpikeController.createAuroraProject';
 

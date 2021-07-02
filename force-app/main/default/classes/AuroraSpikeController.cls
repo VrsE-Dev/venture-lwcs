@@ -168,9 +168,9 @@ public with sharing class AuroraSpikeController {
             return null;
         }
     }
-    
+
     @AuraEnabled(Cacheable=true)
-    private static string getContactName(string accountId){
+    public static string getContactName(string accountId){
         try{
             Contact user = new Contact();
 
@@ -220,7 +220,7 @@ public with sharing class AuroraSpikeController {
             if (httpResponse.getStatusCode() == 200) {  
                 strResponse = httpResponse.getBody();  
                 System.debug(strResponse);
-                site.Aurora_Project_Id__c = strResponse['project']['id'];
+                //site.Aurora_Project_Id__c = strResponse['project']['id'];
                 update site;
             } 
             else {  

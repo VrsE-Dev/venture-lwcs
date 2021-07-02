@@ -100,7 +100,9 @@ public with sharing class AuroraSpikeController {
             account = [
                 SELECT
                     Id,
-                    Site
+                    Site,
+                    BillingAddress,
+                    OwnerId
                 FROM 
                     Account 
                 WHERE
@@ -191,23 +193,24 @@ public with sharing class AuroraSpikeController {
     }
 
     @AuraEnabled(Cacheable=true)
-    public static string createAuroraProject(Site__c site, Account__c siteAccount){
-        System.debug('Site Id: ' + site.Id);
+    public static string createAuroraProject(string site, string siteAccount){
+        //System.debug('Site Id: ' + site.Id);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId  = auroraSettings.Tenant_Id__c;
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 
-        string userName = await getContactName(siteAccount.Id);
+        Account__c account = await getAccountFields(siteAccount);
+        string userName = await getContactName(siteAccount);
         string[] names = userName.split(' ');
 
         String requestBody = '"project":{'+
-            '"name":"' + siteAccount.BillingAddress + ',' +
+            '"name":"' + account.BillingAddress + ',' +
             '"customer_first_name":"' + names[0] + ',' +
             '"customer_last_name":"' + names[1] + ',' +
-            '"customer_address":' + siteAccount.BillingAddress + ',' +
+            '"customer_address":' + account.BillingAddress + ',' +
             '"project_type":"residential",' +
-            '"external_provider_id:' + siteAccount.OwnerId + '}';
+            '"external_provider_id:' + account.OwnerId + '}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
         httpRequest.setBody(requestBody);

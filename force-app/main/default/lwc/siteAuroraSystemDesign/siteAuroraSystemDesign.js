@@ -173,7 +173,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
 
     static getAllowedArrays(accountId) {
         try {
-            let data = await getAllowedArrays({
+            let data = getAllowedArrays({
                 accountId: accountId
             });
 

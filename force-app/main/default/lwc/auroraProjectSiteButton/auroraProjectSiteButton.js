@@ -2,7 +2,7 @@ import { LightningElement, api, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { getRecord } from 'lightning/uiRecordApi';
 
-import createNewAuroraProject from '@salesforce/apex/AuroraProjectSpikeButtonController.createAuroraProject';
+import createNewAuroraProject from '@salesforce/apex/AuroraProjectSiteButtonController.createAuroraProject';
 
 export default class AuroraProjectSiteButton extends NavigationMixin(LightningElement) {
     @track site;

@@ -115,4 +115,33 @@ public with sharing class AuroraProjectSiteButtonController {
 
         return httpRequest;
     }
+
+    private static String calculateSignature(String requestVerb, String apiEndpoint, String auroraKey, String timestamp) { 
+        String[] parameters = new List<String>();
+        parameters.add(requestVerb + '\n');
+        parameters.add(apiEndpoint + '\n');
+        parameters.add(auroraKey + '\n');
+        parameters.add(timestamp + '\n');      
+        
+        String canonicalSignature = '';
+        for (Integer i = 0; i < parameters.size(); i++) {
+            canonicalSignature = canonicalSignature + parameters[i];
+        }
+        System.debug('canonical signature:');
+		System.debug(canonicalSignature);
+        
+        Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
+        String auroraSecret = auroraSettings.Aurora_Secret__c;
+        
+        Blob hmac = crypto.generateMac('HmacSHA256', Blob.valueOf(canonicalSignature), Blob.valueOf(auroraSecret));
+        //System.debug('signature bytes:');
+        //System.debug(hmac.toString());
+        
+        String signature64 = EncodingUtil.base64Encode(hmac);
+        System.debug('signature 64:');
+        System.debug(signature64);
+      
+        String signature = EncodingUtil.urlEncode(signature64, 'UTF-8');
+        return signature;
+    }
 }

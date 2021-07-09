@@ -89,6 +89,30 @@ public with sharing class AuroraProjectSiteButtonController {
         }
     }
 
+    @AuraEnabled(Cacheable=true)
+    public static Site__c getSiteFields(String siteId){
+        try {
+            Site__c site = new Site__c();
+    
+            site = [
+                SELECT
+                    Id,
+                    Account__c,
+                    Aurora_Project_Id__c
+                FROM 
+                    Site__c
+                WHERE
+                    Id = :siteId
+                LIMIT
+                    1
+            ].get(0);
+    
+            return site;
+        } catch(Exception e) {
+            throw new AuraHandledException('Couldnt find Site associated with Account Id: ' + siteId);
+        }
+    }
+
     @TestVisible 
     private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod) {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();

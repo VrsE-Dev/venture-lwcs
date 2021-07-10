@@ -15,9 +15,9 @@ import ALLOWED_ARRAY_NUMBER_OF_PANELS__C  from '@salesforce/schema/Allowed_Array
 import ALLOWED_ARRAY_SITE__C from '@salesforce/schema/Allowed_Array__c.Site__c';
 import ALLOWED_ARRAY_TSRF__C from '@salesforce/schema/Allowed_Array__c.TSRF__c';
 
-import SITE_ID from '@salesforce/schema/Site.Id';
-import SITE_ACCOUNTID from '@salesforce/schema/Site.AccountId';
-import SITE_AURORA_PROJECT_ID from '@salesforce/schema/Site.Aurora_Project_Id__c';
+import SITE_ID from '@salesforce/schema/Site__c.Id';
+import SITE_ACCOUNT from '@salesforce/schema/Site__c.Account__c';
+import SITE_AURORA_PROJECT_ID from '@salesforce/schema/Site__c.Aurora_Project_Id__c';
 
 export default class AuroraSpike extends NavigationMixin(LightningElement) {
     @track site;
@@ -50,7 +50,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             recordId: '$recordId',
             fields: [
                 SITE_ID,
-                SITE_ACCOUNTID,
+                SITE_ACCOUNT,
                 SITE_AURORA_PROJECT_ID
             ]
         }
@@ -92,7 +92,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
         try {
             const unparsedProjectDesigns = await getProjectDesigns({projectId: this.site.Aurora_Project_Id__c});
             this.validateAuroraResponse(unparsedProjectDesigns);
-            this.existingAllowedArrays = await this.getAllowedArrays(this.site.AccountId);
+            this.existingAllowedArrays = await this.getAllowedArrays(this.site.Account.Id);
         
         } catch (e) {
             console.log(e);

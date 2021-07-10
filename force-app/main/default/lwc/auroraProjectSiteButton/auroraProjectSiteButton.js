@@ -12,6 +12,9 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
     @track site;
     @api recordId;
 
+    @track loadingDesignSummary = false;
+    @track noAuroraIdOnQuoteError = false;
+
     @wire(
         getRecord,
         {
@@ -23,6 +26,30 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
             ]
         }
     )
+
+    getQuote({error, data}) {
+        if (data) {
+            console.log('data.fields:');
+            console.log(JSON.stringify(data.fields));
+
+            this.site = {};
+            Object.keys(data.fields).map((v, k) => {
+                this.site[v] = data.fields[v].value;
+            });
+
+            console.log('Site Aurora System Design Converted site:');
+            console.log(JSON.stringify(this.site, undefined, 2));
+
+            if(!this.site.Aurora_Project_Id__c) {
+                console.log('site has no aurora id');
+                this.loadingDesignSummary = true;
+                this.noAuroraIdOnQuoteError = true;
+            }
+        } else if (error) {
+            console.log('Error getting quote data:');
+            console.log(JSON.stringify(error, undefined, 2));
+        }
+    }
 
     async createNewAuroraProject(){
         await createNewAuroraProject(this.site.Id, this.site.AccountId);

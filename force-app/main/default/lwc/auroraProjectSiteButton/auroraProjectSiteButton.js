@@ -5,7 +5,7 @@ import { getRecord } from 'lightning/uiRecordApi';
 import createNewAuroraProject from '@salesforce/apex/AuroraProjectSiteButtonController.createAuroraProject';
 
 import SITE_ID from '@salesforce/schema/Site__c.Id';
-import SITE_ACCOUNTID from '@salesforce/schema/Site__c.Account__c.Id';
+import SITE_ACCOUNT from '@salesforce/schema/Site__c.Account__c';
 import SITE_AURORA_PROJECT_ID from '@salesforce/schema/Site__c.Aurora_Project_Id__c';
 
 export default class AuroraProjectSiteButton extends NavigationMixin(LightningElement) {
@@ -21,7 +21,7 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
             recordId: '$recordId',
             fields: [
                 SITE_ID,
-                SITE_ACCOUNTID,
+                SITE_ACCOUNT,
                 SITE_AURORA_PROJECT_ID
             ]
         }
@@ -52,6 +52,6 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
     }
 
     async createNewAuroraProject(){
-        await createNewAuroraProject(this.site.Id, this.site.AccountId);
+        await createNewAuroraProject(this.site.Id, this.site.Account.Id);
     }
 }

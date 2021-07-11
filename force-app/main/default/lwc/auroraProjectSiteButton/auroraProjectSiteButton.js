@@ -54,7 +54,7 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
     async createNewAuroraProject(){
         console.log("Testing Aurora Project Site button");
         console.log(this.site.Id);
-        console.log(this.site.Account);
+        console.log(this.site.Account__c);
         await createNewAuroraProject(this.site.Id, this.site.Account__c);
     }
 }

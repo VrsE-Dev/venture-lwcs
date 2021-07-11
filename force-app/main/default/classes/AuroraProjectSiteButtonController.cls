@@ -2,6 +2,8 @@ public with sharing class AuroraProjectSiteButtonController {
     @AuraEnabled(Cacheable=true)
     public static string createAuroraProject(String site, String siteAccount){
         //System.debug('Site Id: ' + site.Id);
+        System.debug('Site Id: ' + site);
+        System.debug('Account Id: ' + siteAccount);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId  = auroraSettings.Tenant_Id__c;
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';

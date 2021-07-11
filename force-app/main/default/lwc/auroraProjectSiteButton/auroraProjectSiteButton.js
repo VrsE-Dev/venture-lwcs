@@ -2,7 +2,7 @@ import { LightningElement, api, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { getRecord } from 'lightning/uiRecordApi';
 
-import createNewAuroraProject from '@salesforce/apex/AuroraProjectSiteButtonController.createAuroraProject';
+import createNewAuroraProjectAction from '@salesforce/apex/AuroraProjectSiteButtonController.createAuroraProject';
 
 import SITE_ID from '@salesforce/schema/Site__c.Id';
 import SITE_ACCOUNT from '@salesforce/schema/Site__c.Account__c';
@@ -55,6 +55,6 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
         console.log("Testing Aurora Project Site button");
         console.log(this.site.Id);
         console.log(this.site.Account__c);
-        await createNewAuroraProject(this.site.Id, this.site.Account__c);
+        string siteResponse = await createNewAuroraProjectAction(this.site.Id, this.site.Account__c);
     }
 }

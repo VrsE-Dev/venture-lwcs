@@ -1,5 +1,5 @@
 public with sharing class AuroraProjectSiteButtonController {
-    @AuraEnabled(Cacheable=true)
+    @AuraEnabled
     public static string createAuroraProject(String site, String siteAccount){
         //System.debug('Site Id: ' + site.Id);
         System.debug('Site Id: ' + site);

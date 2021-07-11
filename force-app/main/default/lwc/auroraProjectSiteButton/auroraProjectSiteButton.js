@@ -52,10 +52,21 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
     }
 
     async createNewAuroraProject(){
-        console.log("Testing Aurora Project Site button");
-        console.log(this.site.Id);
-        console.log(this.site.Account__c);
-        const siteResponse = await createNewAuroraProjectAction({site:this.site.Id, siteAccount:this.site.Account__c});
-        console.log(siteResponse);
+        try{
+            console.log("Testing Aurora Project Site button");
+            console.log(this.site.Id);
+            console.log(this.site.Account__c);
+            const siteResponse = await createNewAuroraProjectAction({site:this.site.Id, siteAccount:this.site.Account__c});
+            console.log(siteResponse);
+        }
+        catch(e) {
+            console.log('error from inside aurora project button save:');
+            console.log(JSON.stringify(e, undefined, 2));
+            this.saveError = true;
+            this.disabled = false;
+
+            this.showToast('error', e);
+        }
+        
     }
 }

@@ -6,6 +6,8 @@ public with sharing class AuroraProjectSiteButtonController {
         System.debug('Account Id: ' + siteAccount);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId  = auroraSettings.Tenant_Id__c;
+        System.debug(auroraSettings.Tenant_Id__c);
+        System.debug(auroraSettings.Aurora_Key__c);
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 

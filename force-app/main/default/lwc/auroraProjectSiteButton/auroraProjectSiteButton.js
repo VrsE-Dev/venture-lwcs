@@ -65,6 +65,5 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
             this.saveError = true;
             this.disabled = false;
         }
-        
     }
 }

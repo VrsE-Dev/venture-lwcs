@@ -2,13 +2,9 @@ public with sharing class AuroraProjectSiteButtonController {
     @AuraEnabled
     public static string createAuroraProject(String site, String siteAccount){
         //System.debug('Site Id: ' + site.Id);
-        System.debug('Site Id: ' + site);
-        System.debug('Account Id: ' + siteAccount);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String tenantId  = auroraSettings.Tenant_Id__c;
-        System.debug(auroraSettings.Tenant_Id__c);
-        System.debug(auroraSettings.Aurora_Key__c);
-        // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
+        //String tenantId  = auroraSettings.Tenant_Id__c;
+        String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
 
         Account account = getAccountFields(siteAccount);
@@ -117,37 +113,13 @@ public with sharing class AuroraProjectSiteButtonController {
         }
     }
 
-    @AuraEnabled
-    public static string getAuroraFields(){
-        Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String tenantId  = auroraSettings.Tenant_Id__c;
-        System.debug(auroraSettings.Tenant_Id__c);
-        System.debug(auroraSettings.Aurora_Key__c);
-        // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
-        //String baseUrl   = 'https://api-sandbox.aurorasolar.com';
-        String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
-        //String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
-        
-        System.debug('unencoded time: ' + Datetime.now());
-        String timestamp = 'Timestamp=' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20');
-        timestamp = timestamp.replaceAll('%3A', ':');
-        
-        System.debug('encoded time: ' + timestamp);
-        System.debug(auroraSettings.Aurora_Key__c);
-        
-        String signature = 'Signature=' + calculateSignature('POST', '/v2/tenants/' + tenantId + '/projects/', auroraKey, timestamp);
-
-        return signature;
-    }
-
     @TestVisible 
     private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod) {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String baseUrl   = auroraSettings.Base_URL__c;
-        //String baseUrl   = 'https://api-sandbox.aurorasolar.com';
-        String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
-        //String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
+        //String baseUrl   = auroraSettings.Base_URL__c;
+        String baseUrl   = 'https://api-sandbox.aurorasolar.com';
+        //String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
+        String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
         String requestVerb = httpMethod;
         
         System.debug('unencoded time: ' + Datetime.now());

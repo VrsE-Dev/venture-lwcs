@@ -118,7 +118,7 @@ public with sharing class AuroraProjectSiteButtonController {
     }
 
     @AuraEnabled
-    public static string GetAuroraFields(){
+    public static string getAuroraFields(){
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId  = auroraSettings.Tenant_Id__c;
         System.debug(auroraSettings.Tenant_Id__c);

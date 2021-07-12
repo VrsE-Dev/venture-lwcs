@@ -3,7 +3,7 @@ import { NavigationMixin } from 'lightning/navigation';
 import { getRecord } from 'lightning/uiRecordApi';
 
 import createNewAuroraProjectAction from '@salesforce/apex/AuroraProjectSiteButtonController.createAuroraProject';
-import getAuroraSignature from '@salesforce/apex/AuroraProjectSiteButtonController.GetAuroraFields';
+import getAuroraSignature from '@salesforce/apex/AuroraProjectSiteButtonController.getAuroraFields';
 
 import SITE_ID from '@salesforce/schema/Site__c.Id';
 import SITE_ACCOUNT from '@salesforce/schema/Site__c.Account__c';
@@ -55,6 +55,7 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
     async createNewAuroraProject(){
         try{
             const auroraSignature = await getAuroraSignature();
+            console.log(auroraSignature);
             console.log("Testing Aurora Project Site button");
             console.log(this.site.Id);
             console.log(this.site.Account__c);

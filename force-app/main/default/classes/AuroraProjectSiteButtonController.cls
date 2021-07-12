@@ -118,10 +118,10 @@ public with sharing class AuroraProjectSiteButtonController {
     @TestVisible 
     private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod) {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String baseUrl   = auroraSettings.Base_URL__c;
-        // String baseUrl   = 'https://api-sandbox.aurorasolar.com';
-        String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
-        // String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
+        //String baseUrl   = auroraSettings.Base_URL__c;
+        String baseUrl   = 'https://api-sandbox.aurorasolar.com';
+        //String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
+        String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
         String requestVerb = httpMethod;
         
         System.debug('unencoded time: ' + Datetime.now());

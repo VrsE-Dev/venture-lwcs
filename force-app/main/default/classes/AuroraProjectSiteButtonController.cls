@@ -9,13 +9,13 @@ public with sharing class AuroraProjectSiteButtonController {
         Account account = getAccountFields(siteAccount);
         String userName = getContactName(siteAccount);
 
-        String requestBody = '{"project":{'+
+        String requestBody = '"project":{'+
             '"name":"' + account.BillingAddress + ',' +
             '"customer_first_name":"' + userName + ',' +
             '"customer_last_name":"' + userName + ',' +
             '"customer_address":' + account.BillingAddress + ',' +
             '"project_type":"residential",' +
-            '"external_provider_id:' + account.OwnerId + '}}';
+            '"external_provider_id:' + account.OwnerId + '}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST', requestBody); 
@@ -164,10 +164,7 @@ public with sharing class AuroraProjectSiteButtonController {
         //System.debug(hmac.toString());
         
         String signature64 = EncodingUtil.base64Encode(hmac);
-        System.debug('signature 64:');
-        System.debug(signature64);
-      
-        String signature = EncodingUtil.urlEncode(signature64, 'UTF-8');
-        return signature;
+    
+        return signature64;
     }
 }

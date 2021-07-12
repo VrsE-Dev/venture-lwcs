@@ -129,6 +129,7 @@ public with sharing class AuroraProjectSiteButtonController {
         timestamp = timestamp.replaceAll('%3A', ':');
         
         System.debug('encoded time: ' + timestamp);
+        System.log(auroraSettings.Aurora_Key__c);
         
         String signature = 'Signature=' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp);
 		

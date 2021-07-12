@@ -125,11 +125,9 @@ public with sharing class AuroraProjectSiteButtonController {
         System.debug(auroraSettings.Aurora_Key__c);
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
-        String baseUrl   = auroraSettings.Base_URL__c;
         //String baseUrl   = 'https://api-sandbox.aurorasolar.com';
         String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
         //String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
-        String requestVerb = httpMethod;
         
         System.debug('unencoded time: ' + Datetime.now());
         String timestamp = 'Timestamp=' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20');
@@ -138,7 +136,7 @@ public with sharing class AuroraProjectSiteButtonController {
         System.debug('encoded time: ' + timestamp);
         System.debug(auroraSettings.Aurora_Key__c);
         
-        String signature = 'Signature=' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp);
+        String signature = 'Signature=' + calculateSignature('POST', '/v2/tenants/' + tenantId + '/projects/', auroraKey, timestamp);
 
         return signature;
     }

@@ -5,21 +5,21 @@ public with sharing class AuroraProjectSiteButtonController {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         //String tenantId  = auroraSettings.Tenant_Id__c;
         String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST'); 
-
+        
         Account account = getAccountFields(siteAccount);
         String userName = getContactName(siteAccount);
 
-        String requestBody = '"project":{'+
+        String requestBody = '{"project":{'+
             '"name":"' + account.BillingAddress + ',' +
             '"customer_first_name":"' + userName + ',' +
             '"customer_last_name":"' + userName + ',' +
             '"customer_address":' + account.BillingAddress + ',' +
             '"project_type":"residential",' +
-            '"external_provider_id:' + account.OwnerId + '}';
+            '"external_provider_id:' + account.OwnerId + '}}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
-        httpRequest.setBody('{' + EncodingUtil.urlEncode(requestBody, 'UTF-8') + '}');
+        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST', requestBody); 
+
         String strResponse = null;
         try {  
             Http http = new Http();   
@@ -114,28 +114,30 @@ public with sharing class AuroraProjectSiteButtonController {
     }
 
     @TestVisible 
-    private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod) {
+    private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod, String requestBody) {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String baseUrl   = auroraSettings.Base_URL__c;
         //String baseUrl   = 'https://api-sandbox.aurorasolar.com';
-        String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
+        String auroraKey = '"AuroraKey":' + auroraSettings.Aurora_Key__c;
         //String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
         String requestVerb = httpMethod;
         
         System.debug('unencoded time: ' + Datetime.now());
-        String timestamp = 'Timestamp=' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20');
+        String timestamp = '"Timestamp":' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20');
         timestamp = timestamp.replaceAll('%3A', ':');
         
         System.debug('encoded time: ' + timestamp);
         System.debug(auroraSettings.Aurora_Key__c);
         
-        String signature = 'Signature=' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp);
+        String signature = '"Signature":' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp);
 		
-        String endpoint = baseUrl + apiEndpoint + '?' + auroraKey + '&' + timestamp + '&' + signature;
+        String endpoint = baseUrl + '/' + apiEndpoint;
 
+        String requestBodyConcat = '{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}';
         HttpRequest httpRequest = new HttpRequest();  
         httpRequest.setEndpoint(endpoint);
         httpRequest.setMethod(requestVerb);
+        httpRequest.setBody(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8');
 
         return httpRequest;
     }

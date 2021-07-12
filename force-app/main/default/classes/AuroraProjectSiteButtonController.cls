@@ -19,7 +19,7 @@ public with sharing class AuroraProjectSiteButtonController {
             '"external_provider_id:' + account.OwnerId + '}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
-        httpRequest.setBody(requestBody);
+        httpRequest.setBody(EncodingUtil.urlEncode(requestBody, 'UTF-8'));
         String strResponse = null;
         try {  
             Http http = new Http();   

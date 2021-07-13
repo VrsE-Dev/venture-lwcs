@@ -22,6 +22,8 @@ public with sharing class AuroraProjectSiteButtonController {
 
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects', 'POST', requestBody); 
 
+        System.debug(httpRequest);
+
         String strResponse = null;
         try {  
             Http http = new Http();   

@@ -131,7 +131,7 @@ public with sharing class AuroraProjectSiteButtonController {
         
         String signature = '"Signature":' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp);
 		
-        String endpoint = baseUrl + '/' + apiEndpoint;
+        String endpoint = baseUrl + apiEndpoint;
 
         String requestBodyConcat = '{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}';
         HttpRequest httpRequest = new HttpRequest();  

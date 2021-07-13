@@ -13,7 +13,7 @@ public with sharing class AuroraProjectSiteButtonController {
             '"name":"' + account.BillingAddress + ',' +
             '"customer_first_name":"' + userName + ',' +
             '"customer_last_name":"' + userName + ',' +
-            '"customer_address":' + account.BillingAddress + ',' +
+            '"address":' + account.BillingAddress + ',' +
             '"project_type":"residential",' +
             '"external_provider_id:' + account.OwnerId + '}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +

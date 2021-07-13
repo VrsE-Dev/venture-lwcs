@@ -118,23 +118,26 @@ public with sharing class AuroraProjectSiteButtonController {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String baseUrl   = auroraSettings.Base_URL__c;
         //String baseUrl   = 'https://api-sandbox.aurorasolar.com';
-        String auroraKey = '"AuroraKey":' + auroraSettings.Aurora_Key__c;
+        String auroraKey = '"AuroraKey":"' + auroraSettings.Aurora_Key__c + '"';
         //String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
         String requestVerb = httpMethod;
         
         System.debug('unencoded time: ' + Datetime.now());
-        String timestamp = '"Timestamp":' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20');
+        String timestamp = '"Timestamp":"' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20') + '"';
         timestamp = timestamp.replaceAll('%3A', ':');
         
         System.debug('encoded time: ' + timestamp);
         System.debug(auroraSettings.Aurora_Key__c);
         
-        String signature = '"Signature":' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp);
+        String signature = '"Signature":"' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp) + '"';
 		
+        System.debug(signature);
+
         String endpoint = baseUrl + apiEndpoint;
 
         String requestBodyConcat = '{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}';
         HttpRequest httpRequest = new HttpRequest();  
+        System.debug(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8'));
         httpRequest.setEndpoint(endpoint);
         httpRequest.setMethod(requestVerb);
         httpRequest.setBody(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8'));

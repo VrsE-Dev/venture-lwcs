@@ -12,12 +12,12 @@ public with sharing class AuroraProjectSiteButtonController {
         String fullAddress = getFullAddress(account.BillingAddress);
 
         String requestBody = '"project":{'+
-            '"name":"' + fullAddress + ',' +
-            '"customer_first_name":"' + userName + ',' +
-            '"customer_last_name":"' + userName + ',' +
-            '"address":' + fullAddress + ',' +
+            '"name":"' + fullAddress + '",' +
+            '"customer_first_name":"' + userName + '",' +
+            '"customer_last_name":"' + userName + '",' +
+            '"address":"' + fullAddress + '",' +
             '"project_type":"residential",' +
-            '"external_provider_id:' + account.OwnerId + '}';
+            '"external_provider_id:"' + account.OwnerId + '"}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects', 'POST', requestBody); 

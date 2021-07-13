@@ -123,7 +123,7 @@ public with sharing class AuroraProjectSiteButtonController {
         String requestVerb = httpMethod;
         
         System.debug('unencoded time: ' + Datetime.now());
-        String timestamp = '"Timestamp":"' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20') + '"';
+        String timestamp = '"Timestamp":"' + Datetime.now() + ' UTC"';
         timestamp = timestamp.replaceAll('%3A', ':');
         
         System.debug('encoded time: ' + timestamp);
@@ -137,10 +137,9 @@ public with sharing class AuroraProjectSiteButtonController {
 
         String requestBodyConcat = '{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}';
         HttpRequest httpRequest = new HttpRequest();  
-        System.debug(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8'));
         httpRequest.setEndpoint(endpoint);
         httpRequest.setMethod(requestVerb);
-        httpRequest.setBody(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8'));
+        httpRequest.setBody(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8').replaceAll('\\+', '%20'));
 
         return httpRequest;
     }

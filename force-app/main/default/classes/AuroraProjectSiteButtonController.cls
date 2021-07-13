@@ -12,7 +12,7 @@ public with sharing class AuroraProjectSiteButtonController {
         String fullAddress = getFullAddress(account.BillingAddress);
 
         String requestBody = '"project":{'+
-            '"name":"' + account.BillingAddress + ',' +
+            '"name":"' + fullAddress + ',' +
             '"customer_first_name":"' + userName + ',' +
             '"customer_last_name":"' + userName + ',' +
             '"address":' + fullAddress + ',' +

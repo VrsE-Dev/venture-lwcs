@@ -9,11 +9,13 @@ public with sharing class AuroraProjectSiteButtonController {
         Account account = getAccountFields(siteAccount);
         String userName = getContactName(siteAccount);
 
+        String fullAddress = getFullAddress(account.BillingAddress);
+
         String requestBody = '"project":{'+
             '"name":"' + account.BillingAddress + ',' +
             '"customer_first_name":"' + userName + ',' +
             '"customer_last_name":"' + userName + ',' +
-            '"address":' + account.BillingAddress + ',' +
+            '"address":' + fullAddress + ',' +
             '"project_type":"residential",' +
             '"external_provider_id:' + account.OwnerId + '}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
@@ -40,6 +42,10 @@ public with sharing class AuroraProjectSiteButtonController {
 
         return strResponse;
         
+    }
+
+    private static string getFullAddress(System.Address address){
+        return address.getStreet() + ', ' + address.getCity() + ', ' + address.getState() + ', ' + address.getPostalCode();
     }
 
     @AuraEnabled(Cacheable=true)

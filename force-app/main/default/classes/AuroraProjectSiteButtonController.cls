@@ -18,7 +18,7 @@ public with sharing class AuroraProjectSiteButtonController {
             '"external_provider_id:' + account.OwnerId + '}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/', 'POST', requestBody); 
+        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects', 'POST', requestBody); 
 
         String strResponse = null;
         try {  
@@ -133,7 +133,7 @@ public with sharing class AuroraProjectSiteButtonController {
 		
         System.debug(signature);
 
-        String endpoint = baseUrl + apiEndpoint;
+        String endpoint = baseUrl + '/' + apiEndpoint;
 
         String requestBodyConcat = '{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}';
         HttpRequest httpRequest = new HttpRequest();  

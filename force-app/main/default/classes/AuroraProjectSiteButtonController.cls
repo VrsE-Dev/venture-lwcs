@@ -17,7 +17,7 @@ public with sharing class AuroraProjectSiteButtonController {
             '"customer_last_name":"' + userName + '",' +
             '"address":"' + fullAddress + '",' +
             '"project_type":"residential",' +
-            '"external_provider_id:"' + account.OwnerId + '"}';
+            '"external_provider_id":"' + account.OwnerId + '"}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects', 'POST', requestBody); 
@@ -149,8 +149,6 @@ public with sharing class AuroraProjectSiteButtonController {
         HttpRequest httpRequest = new HttpRequest();  
         httpRequest.setEndpoint(endpoint);
         httpRequest.setMethod(requestVerb);
-        httpRequest.setHeader('Content-Type', 'application/json');
-        httpRequest.setHeader('Accept', 'application/json');
         httpRequest.setBody(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8').replaceAll('\\+', '%20'));
         System.debug(requestBodyConcat);
 

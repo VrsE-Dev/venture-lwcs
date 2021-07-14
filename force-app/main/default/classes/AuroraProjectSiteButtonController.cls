@@ -150,7 +150,7 @@ public with sharing class AuroraProjectSiteButtonController {
         httpRequest.setEndpoint(endpoint);
         httpRequest.setMethod(requestVerb);
         httpRequest.setBody(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8').replaceAll('\\+', '%20'));
-        System.debug(requestBodyConcat);
+        System.debug(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8').replaceAll('\\+', '%20'));
 
         return httpRequest;
     }

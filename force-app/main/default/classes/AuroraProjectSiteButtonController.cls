@@ -149,7 +149,7 @@ public with sharing class AuroraProjectSiteButtonController {
 
         String endpoint = baseUrl + apiEndpoint;
 
-        String requestBodyConcat = '"{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}"\n';
+        String requestBodyConcat = '{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}\n';
         
         System.debug(requestBodyConcat);
         HttpRequest httpRequest = new HttpRequest();  

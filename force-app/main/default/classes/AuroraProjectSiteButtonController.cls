@@ -28,6 +28,7 @@ public with sharing class AuroraProjectSiteButtonController {
         try {  
             Http http = new Http();   
             HttpResponse httpResponse = http.send(httpRequest);  
+            System.debug(httpResponse);
             if (httpResponse.getStatusCode() == 200) {  
                 strResponse = httpResponse.getBody();  
                 System.debug(strResponse);
@@ -150,7 +151,6 @@ public with sharing class AuroraProjectSiteButtonController {
         httpRequest.setEndpoint(endpoint);
         httpRequest.setMethod(requestVerb);
         httpRequest.setBody(requestBodyConcat);
-        System.debug(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8').replaceAll('\\+', '%20'));
 
         return httpRequest;
     }

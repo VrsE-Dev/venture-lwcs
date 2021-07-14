@@ -20,7 +20,12 @@ public with sharing class AuroraProjectSiteButtonController {
             '"external_provider_id":"' + account.OwnerId + '"}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects', 'POST', requestBody); 
+        String requestBodyForSignature = 'project.address=' + fullAddress +
+            '&project.customer_first_name=' + userName + '&project.customer_last_name=' + userName + 
+            '&project.external_provider_id=' + account.OwnerId + '&project.name=' + fullAddress +
+            '&project.project_type=residential'; 
+
+        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects', 'POST', requestBody, requestBodyForSignature); 
 
         System.debug(httpRequest);
 
@@ -123,7 +128,7 @@ public with sharing class AuroraProjectSiteButtonController {
     }
 
     @TestVisible 
-    private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod, String requestBody) {
+    private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod, String requestBody, String requestBodyForSignature) {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String baseUrl   = auroraSettings.Base_URL__c;
         //String baseUrl   = 'https://api-sandbox.aurorasolar.com';
@@ -138,7 +143,7 @@ public with sharing class AuroraProjectSiteButtonController {
         System.debug('encoded time: ' + timestamp);
         System.debug(auroraSettings.Aurora_Key__c);
         
-        String signature = '"Signature":"' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp) + '"';
+        String signature = '"Signature":"' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp, requestBodyForSignature) + '"';
 		
         System.debug(signature);
 
@@ -155,12 +160,13 @@ public with sharing class AuroraProjectSiteButtonController {
         return httpRequest;
     }
 
-    private static String calculateSignature(String requestVerb, String apiEndpoint, String auroraKey, String timestamp) { 
+    private static String calculateSignature(String requestVerb, String apiEndpoint, String auroraKey, String timestamp, String requestBodyForSignature) { 
         String[] parameters = new List<String>();
         parameters.add(requestVerb + '\n');
         parameters.add(apiEndpoint + '\n');
         parameters.add(auroraKey + '\n');
-        parameters.add(timestamp + '\n');      
+        parameters.add(timestamp + '\n');  
+        parameters.add(requestBodyForSignature + '\n');
         
         String canonicalSignature = '';
         for (Integer i = 0; i < parameters.size(); i++) {

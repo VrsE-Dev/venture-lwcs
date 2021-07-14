@@ -20,10 +20,10 @@ public with sharing class AuroraProjectSiteButtonController {
             '"external_provider_id":"' + account.OwnerId + '"}';
             //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
 
-        String requestBodyForSignature = 'project.address=' + fullAddress +
+        String requestBodyForSignature = EncodingUtil.urlEncode('project.address=' + fullAddress +
             '&project.customer_first_name=' + userName + '&project.customer_last_name=' + userName + 
             '&project.external_provider_id=' + account.OwnerId + '&project.name=' + fullAddress +
-            '&project.project_type=residential'; 
+            '&project.project_type=residential', 'UTF-8'); 
 
         HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects', 'POST', requestBody, requestBodyForSignature); 
 

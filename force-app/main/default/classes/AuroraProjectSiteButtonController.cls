@@ -182,7 +182,7 @@ public with sharing class AuroraProjectSiteButtonController {
         //System.debug('signature bytes:');
         //System.debug(hmac.toString());
         
-        String signature64 = EncodingUtil.base64Encode(hmac);
+        String signature64 = EncodingUtil.urlEncode(EncodingUtil.base64Encode(hmac), 'UTF-8');
     
         return signature64;
     }

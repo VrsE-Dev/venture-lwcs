@@ -132,24 +132,24 @@ public with sharing class AuroraProjectSiteButtonController {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String baseUrl   = auroraSettings.Base_URL__c;
         //String baseUrl   = 'https://api-sandbox.aurorasolar.com';
-        String auroraKey = '"AuroraKey":"' + auroraSettings.Aurora_Key__c + '"';
+        String auroraKey = '"AuroraKey":"' + auroraSettings.Aurora_Key__c + '"\n';
         //String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
         String requestVerb = httpMethod;
         
         System.debug('unencoded time: ' + Datetime.now());
-        String timestamp = '"Timestamp":"' + Datetime.now() + ' UTC"';
+        String timestamp = '"Timestamp":"' + Datetime.now() + ' UTC"\n';
         timestamp = timestamp.replaceAll('%3A', ':');
         
         System.debug('encoded time: ' + timestamp);
         System.debug(auroraSettings.Aurora_Key__c);
         
-        String signature = '"Signature":"' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp, requestBodyForSignature) + '"';
+        String signature = '"Signature":"' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp, requestBodyForSignature) + '"\n';
 		
         System.debug(signature);
 
         String endpoint = baseUrl + apiEndpoint;
 
-        String requestBodyConcat = '"{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}"';
+        String requestBodyConcat = '"{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}"\n';
         
         System.debug(requestBodyConcat);
         HttpRequest httpRequest = new HttpRequest();  
@@ -182,7 +182,7 @@ public with sharing class AuroraProjectSiteButtonController {
         //System.debug('signature bytes:');
         //System.debug(hmac.toString());
         
-        String signature64 = EncodingUtil.urlEncode(EncodingUtil.base64Encode(hmac), 'UTF-8');
+        String signature64 = EncodingUtil.base64Encode(hmac);
     
         return signature64;
     }

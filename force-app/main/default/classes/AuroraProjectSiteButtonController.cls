@@ -149,7 +149,10 @@ public with sharing class AuroraProjectSiteButtonController {
         HttpRequest httpRequest = new HttpRequest();  
         httpRequest.setEndpoint(endpoint);
         httpRequest.setMethod(requestVerb);
+        httpRequest.setHeader('Content-Type', 'application/json');
+        httpRequest.setHeader('Accept', 'application/json');
         httpRequest.setBody(EncodingUtil.urlEncode(requestBodyConcat, 'UTF-8').replaceAll('\\+', '%20'));
+        System.debug(requestBodyConcat);
 
         return httpRequest;
     }

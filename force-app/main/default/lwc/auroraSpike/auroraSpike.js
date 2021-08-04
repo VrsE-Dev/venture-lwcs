@@ -26,7 +26,7 @@ import PV_SYSTEM_PV_MODULES from '@salesforce/schema/PV_System__c.PV_Modules__c'
 import PV_SYSTEM_QUOTE from '@salesforce/schema/PV_System__c.Quote__c';
 import PV_SYSTEM_ACCOUNT from '@salesforce/schema/PV_System__c.Account__c';
 import PV_SYSTEM_STATUS from '@salesforce/schema/PV_System__c.Status__c';
-// import PV_SYSTEM_WEIGHTED_TSRF from '@salesforce/schema/PV_System__c.Weighted_TSRF__c';
+import PV_SYSTEM_INVERTER from '@salesforce/schema/PV_SYSTEM__c.Inverter__c';
 
 import PV_ARRAY from '@salesforce/schema/PV_Array__c';
 import PV_ARRAY_PANEL_WATTAGE from '@salesforce/schema/PV_Array__c.Panel_Wattage__c';
@@ -42,6 +42,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
 
     @track projectDesignOverview;
     @track designSummary;
+    @track inverter = undefined;
     @track validArrays;
 
     @track noAuroraIdOnQuoteError = false;
@@ -51,6 +52,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
     @track invalidDesignSummary = true;
     @track validDesignSummary = false;
     @track loadingDesignSummary = false;
+    @track hasInverter = false;
     @track saveSuccess = false;
     @track disabled = false;
     
@@ -103,6 +105,8 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
         this.validDesignSummary   = false;
         this.noArrayError = false;
         this.getDesignError = false;
+        this.hasInverter = false;
+        this.inverter = undefined;
 
         console.log('this.quote.Aurora_Project_Id__c:');
         console.log(this.quote.Aurora_Project_Id__c);
@@ -134,6 +138,11 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
                         this.selectedPVModule = await getPVModule({auroraPanelName: this.validArrays[0].module.name});
                         console.log('Got PV Module:');
                         console.log(JSON.stringify(this.selectedPVModule, undefined, 2));
+                        if (this.designSummary?.design?.string_inverters && this.designSummary?.design?.string_inverters.length > 0) {
+                            this.hasInverter = true;
+                            this.inverter = this.designSummary?.design?.string_inverters[0].name;
+                        }
+
                         this.invalidDesignSummary = false;
                         this.validDesignSummary = true;
                         this.loadingDesignSummary = false;
@@ -168,6 +177,10 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             pvSystemFields[PV_SYSTEM_QUOTE.fieldApiName]        = this.recordId;
             pvSystemFields[PV_SYSTEM_ACCOUNT.fieldApiName]      = this.quote.AccountId;
             pvSystemFields[PV_SYSTEM_STATUS.fieldApiName]       = 'Proposed';
+
+            if (this.hasInverter) {
+                pvSystemFields[PV_SYSTEM_INVERTER.fieldApiName] = this.inverter;
+            }
 
             console.log('PV System Fields');
             console.log(JSON.stringify(pvSystemFields, undefined, 2));
@@ -214,7 +227,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
                     console.log('apiName:', PV_ARRAY.objectApiName);
                     console.log('fields:', JSON.stringify(pvArrayFields, undefined, 2));
                     
-                    const createdPvArray = await createRecord({
+                    await createRecord({
                         apiName: PV_ARRAY.objectApiName,
                         fields: pvArrayFields
                     });

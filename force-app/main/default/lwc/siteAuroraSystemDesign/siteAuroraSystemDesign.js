@@ -3,7 +3,7 @@
 /* eslint-disable no-console */
 import { LightningElement, api, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
-import { createRecord, getRecord, deleteRecord } from 'lightning/uiRecordApi';
+import { createRecord, getRecord, deleteRecord, getRecordNotifyChange } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent'
 
 import getProjectDesigns from '@salesforce/apex/AuroraSpikeController.getProjectDesigns';
@@ -12,7 +12,6 @@ import getDesignSummary from '@salesforce/apex/AuroraSpikeController.getDesignSu
 import getAllowedArrays from '@salesforce/apex/SiteAuroraSystemDesignController.getAllowedArrays';
 
 import ALLOWED_ARRAY from '@salesforce/schema/Allowed_Array__c';
-import ALLOWED_ARRAY_NAME from '@salesforce/schema/Allowed_Array__c.Name';
 import ALLOWED_ARRAY_NUMBER_OF_PANELS__C  from '@salesforce/schema/Allowed_Array__c.Number_of_Panels__c';
 import ALLOWED_ARRAY_SITE__C from '@salesforce/schema/Allowed_Array__c.Site__c';
 import ALLOWED_ARRAY_TSRF__C from '@salesforce/schema/Allowed_Array__c.TSRF__c';
@@ -57,7 +56,7 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
             ]
         }
     )
-    async getQuote({error, data}) {
+    async getSite({error, data}) {
         if (data) {
             this.resetValues();
             console.log('data.fields:');
@@ -141,6 +140,14 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
         });
 
         this.showToast('success', `Successfully created allowed arrays`);
+
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        setTimeout(() => {
+            console.log('Refreshing record');
+            window.location.reload();
+        }, 1000);
+
+        this.resetValues();
     }
 
     /**
@@ -162,8 +169,6 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
         }));
 
         await this.createAllowedArrays();
-
-        this.resetValues();
     }
 
 

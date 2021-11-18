@@ -1,33 +1,37 @@
 public with sharing class AuroraProjectSiteButtonController {
     @AuraEnabled
-    public static string createAuroraProject(String site, String siteAccount){
+    public static Object createAuroraProject(String siteId, String accountId){
         //System.debug('Site Id: ' + site.Id);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         //String tenantId  = auroraSettings.Tenant_Id__c;
         String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
         
-        Account account = getAccountFields(siteAccount);
-        String userName = getContactName(siteAccount);
-
+        Account account = getAccountFields(accountId);
+        String userName = getContactName(accountId);
         String fullAddress = getFullAddress(account.BillingAddress);
 
-        String requestBody = '"project":{'+
-            '"name":"' + fullAddress + '",' +
-            '"customer_first_name":"' + userName + '",' +
-            '"customer_last_name":"' + userName + '",' +
+        String name = '';
+        if (fullAddress != '') {
+            name = fullAddress;
+        } else {
+            name = userName + ' Project';
+        }
+
+        String requestBody = '{'+
+            '"name": "' + name + '",' +
+            '"customer_first_name": "' + userName + '",' +
+            '"customer_last_name": "' + userName + '",' +
             '"address":"' + fullAddress + '",' +
-            '"project_type":"residential",' +
-            '"external_provider_id":"' + account.OwnerId + '"}';
-            //'"Customer_First_Name:' + site.Account__c.FirstContact + ',' +
+            '"project_type": "residential",' +
+            '"external_provider_id": "8e68fcd1-af22-4c67-b286-c59f9101d239",' + 
+            '"owner_id": "8e68fcd1-af22-4c67-b286-c59f9101d239"' +
+        '}';
 
-        String requestBodyForSignature = EncodingUtil.urlEncode('project.address=' + fullAddress +
-            '&project.customer_first_name=' + userName + '&project.customer_last_name=' + userName + 
-            '&project.external_provider_id=' + account.OwnerId + '&project.name=' + fullAddress +
-            '&project.project_type=residential', 'UTF-8'); 
+        System.debug('requestBody:');
+        System.debug(requestBody);
 
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects', 'POST', requestBody, requestBodyForSignature); 
-
-        System.debug(httpRequest);
+        HttpRequest httpRequest = getAuroraEndpointPost('tenants/' + tenantId + '/projects', requestBody, 'project'); 
+        //System.debug(httpRequest);
 
         String strResponse = null;
         try {  
@@ -35,10 +39,18 @@ public with sharing class AuroraProjectSiteButtonController {
             HttpResponse httpResponse = http.send(httpRequest);  
             System.debug(httpResponse);
             if (httpResponse.getStatusCode() == 200) {  
-                strResponse = httpResponse.getBody();  
-                System.debug(strResponse);
-                //site.Aurora_Project_Id__c = strResponse['project']['id'];
-                //update site;
+                Map<String, Object> response = (Map<String, Object>)JSON.deserializeUntyped(httpResponse.getBody());
+                System.debug(response);
+
+                Site__c site = getSiteFields(siteId);
+                Map<String, Object> project = (Map<String, Object>)response.get('project');
+                site.Aurora_Project_Id__c = (String)project.get('id');
+
+                System.debug('site.Aurora_Project_Id__c:');
+                System.debug(site.Aurora_Project_Id__c);
+                update site;
+
+                return response;  
             } 
             else {  
                 throw new CalloutException(httpResponse.getBody());  
@@ -48,12 +60,7 @@ public with sharing class AuroraProjectSiteButtonController {
             throw ex;  
         } 
 
-        return strResponse;
-        
-    }
-
-    private static string getFullAddress(System.Address address){
-        return address.getStreet() + ', ' + address.getCity() + ', ' + address.getState() + ', ' + address.getPostalCode();
+        // return strResponse;
     }
 
     @AuraEnabled(Cacheable=true)
@@ -78,7 +85,6 @@ public with sharing class AuroraProjectSiteButtonController {
             throw new AuraHandledException('Couldnt find Contact associated with AccountId: ' + accountId);
         }
     }
-
 
     @AuraEnabled(Cacheable=true)
     public static Account getAccountFields(String accountId){
@@ -127,63 +133,56 @@ public with sharing class AuroraProjectSiteButtonController {
         }
     }
 
-    @TestVisible 
-    private static HttpRequest getAuroraEndpoint(String apiEndpoint, String httpMethod, String requestBody, String requestBodyForSignature) {
-        Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String baseUrl   = auroraSettings.Base_URL__c;
-        //String baseUrl   = 'https://api-sandbox.aurorasolar.com';
-        String auroraKey = '"AuroraKey":"' + auroraSettings.Aurora_Key__c + '"\n';
-        //String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
-        String requestVerb = httpMethod;
-        
-        System.debug('unencoded time: ' + Datetime.now());
-        String timestamp = '"Timestamp":"' + Datetime.now() + ' UTC"\n';
-        timestamp = timestamp.replaceAll('%3A', ':');
-        
-        System.debug('encoded time: ' + timestamp);
-        System.debug(auroraSettings.Aurora_Key__c);
-        
-        String signature = '"Signature":"' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp, requestBodyForSignature) + '"\n';
-		
-        System.debug(signature);
+    @AuraEnabled
+    public static Aurora_Settings__c getAuroraSettings(){
+        try {
+            Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
 
-        String endpoint = baseUrl + apiEndpoint;
-
-        String requestBodyConcat = '{' + auroraKey + ',' + timestamp + ',' + signature + ',' + requestBody + '}\n';
-        
-        System.debug(requestBodyConcat);
-        HttpRequest httpRequest = new HttpRequest();  
-        httpRequest.setEndpoint(endpoint);
-        httpRequest.setMethod(requestVerb);
-        httpRequest.setBody(requestBodyConcat);
-
-        return httpRequest;
+            return auroraSettings;
+        } catch (Exception e) {
+            throw new AuraHandledException('Could not find Aurora Settings');
+        }
     }
 
-    private static String calculateSignature(String requestVerb, String apiEndpoint, String auroraKey, String timestamp, String requestBodyForSignature) { 
-        String[] parameters = new List<String>();
-        parameters.add(requestVerb + '\n');
-        parameters.add(apiEndpoint + '\n');
-        parameters.add(auroraKey + '\n');
-        parameters.add(timestamp + '\n');  
-        parameters.add(requestBodyForSignature + '\n');
-        
-        String canonicalSignature = '';
-        for (Integer i = 0; i < parameters.size(); i++) {
-            canonicalSignature = canonicalSignature + parameters[i];
+    @TestVisible 
+    private static string getFullAddress(System.Address address){
+        String fullAddress = '';
+        if (address.getStreet() != null) {
+            fullAddress += address.getStreet();
         }
-        System.debug('canonical signature:');
-		System.debug(canonicalSignature);
-        
+
+        if (address.getCity() != null) {
+            fullAddress += ', ' + address.getCity();
+        }
+
+        if (address.getState() != null) {
+            fullAddress += ', ' + address.getState();
+        }
+
+        if (address.getPostalCode() != null) {
+            fullAddress += ', ' + address.getPostalCode();
+        }
+
+        return fullAddress;
+    }
+
+    @TestVisible 
+    private static HttpRequest getAuroraEndpointPost(String apiEndpoint, String requestBody, String bodyKey) {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String auroraSecret = auroraSettings.Aurora_Secret__c;
         
-        Blob hmac = crypto.generateMac('HmacSHA256', Blob.valueOf(canonicalSignature), Blob.valueOf(auroraSecret));
-        //System.debug('signature bytes:');
-        //System.debug(hmac.toString());
-        
-        String signature64 = EncodingUtil.urlEncode(EncodingUtil.base64Encode(hmac), 'UTF-8');
-    
-        return signature64;
+        String baseUrl   = auroraSettings.Base_URL__c + '/v2/';
+        String auroraKey = auroraSettings.Aurora_Secret_New__c;
+        String requestVerb = 'POST';
+
+        System.debug('Authorization:');
+        System.debug(auroraKey);
+        HttpRequest httpRequest = new HttpRequest();  
+        httpRequest.setEndpoint(baseUrl + apiEndpoint);
+        httpRequest.setHeader('Content-Type', 'application/json');
+        httpRequest.setHeader('Authorization', auroraKey);
+        httpRequest.setMethod(requestVerb);
+        httpRequest.setBody(requestBody);
+
+        return httpRequest;
     }
 }

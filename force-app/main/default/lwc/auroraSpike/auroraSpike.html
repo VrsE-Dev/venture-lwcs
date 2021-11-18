@@ -33,6 +33,9 @@
             <template if:true={validDesignSummary}>
                 <div><b>Design Name: </b> {projectDesignOverview.name}</div>
                 <div><b>System Size: </b> <lightning-formatted-number value={projectDesignOverview.system_size} format-style="decimal" maximum-fraction-digits="0"></lightning-formatted-number></div>
+                <template if:true={inverter}>
+                    <div><b>Inverter: </b>{inverter}</div>
+                </template>
                 <div><b>Arrays:</b></div>
                 <ul class="pv-arrays-list slds-m-around_medium">
                     <template for:each={validArrays} for:item="pvArray">

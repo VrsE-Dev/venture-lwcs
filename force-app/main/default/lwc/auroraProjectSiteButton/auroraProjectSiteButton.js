@@ -1,8 +1,10 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { getRecord } from 'lightning/uiRecordApi';
+import { getRecordNotifyChange } from 'lightning/uiRecordApi';
 
-import createNewAuroraProjectAction from '@salesforce/apex/AuroraProjectSiteButtonController.createAuroraProject';
+import createAuroraProject from '@salesforce/apex/AuroraProjectSiteButtonController.createAuroraProject';
+import getAuroraSettings   from '@salesforce/apex/AuroraProjectSiteButtonController.getAuroraSettings';
 
 import SITE_ID from '@salesforce/schema/Site__c.Id';
 import SITE_ACCOUNT from '@salesforce/schema/Site__c.Account__c';
@@ -12,8 +14,8 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
     @track site;
     @api recordId;
 
-    @track loadingDesignSummary = false;
-    @track noAuroraIdOnQuoteError = false;
+    @track hasAuroraProject = false;
+    @track auroraSettings;
 
     @wire(
         getRecord,
@@ -26,8 +28,7 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
             ]
         }
     )
-
-    getQuote({error, data}) {
+    async getSite({error, data}) {
         if (data) {
             console.log('data.fields:');
             console.log(JSON.stringify(data.fields));
@@ -40,11 +41,12 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
             console.log('Site Aurora System Design Converted site:');
             console.log(JSON.stringify(this.site, undefined, 2));
 
-            if(!this.site.Aurora_Project_Id__c) {
-                console.log('site has no aurora id');
-                this.loadingDesignSummary = true;
-                this.noAuroraIdOnQuoteError = true;
+            if(this.site.Aurora_Project_Id__c) {
+                console.log('site has aurora id');
+                this.hasAuroraProject = true;
             }
+
+            this.auroraSettings = await getAuroraSettings();
         } else if (error) {
             console.log('Error getting quote data:');
             console.log(JSON.stringify(error, undefined, 2));
@@ -53,11 +55,17 @@ export default class AuroraProjectSiteButton extends NavigationMixin(LightningEl
 
     async createNewAuroraProject(){
         try{
-            console.log("Testing Aurora Project Site button");
+            console.log("Create ");
             console.log(this.site.Id);
             console.log(this.site.Account__c);
-            const siteResponse = await createNewAuroraProjectAction({site:this.site.Id, siteAccount:this.site.Account__c});
-            console.log(siteResponse);
+            const auroraResponse = await createAuroraProject({siteId: this.site.Id, accountId: this.site.Account__c});
+
+            console.log('Aurora response:', auroraResponse);
+            window.open(`${this.auroraSettings.Dashboard_URL__c}/projects/${auroraResponse?.project?.id}`, '_blank');
+
+            getRecordNotifyChange([{
+                recordId: this.recordId
+            }]);
         }
         catch(e) {
             console.log('error from inside aurora project button save:');

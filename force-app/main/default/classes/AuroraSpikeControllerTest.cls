@@ -103,7 +103,8 @@ public class AuroraSpikeControllerTest {
         settings = new Aurora_Settings__c();
         settings.Aurora_Key__c = 'auroraKey';
         settings.Aurora_Secret__c = 'auroraSecret';
-        settings.Base_URL__c = 'v2/tenants';
+        settings.Aurora_Secret_New__c = 'auroraSecretNew';
+        settings.Base_URL__c = 'api-sandbox.aurorasolar.com';
         settings.Tenant_Id__c = 'tenantId';
         insert settings;  
         
@@ -183,7 +184,7 @@ public class AuroraSpikeControllerTest {
         insert site;
 
         Test.startTest();
-        Site__c testSite = AuroraSpikeController.getSiteFields(acct.Id);
+        Site__c testSite = AuroraSpikeController.getSiteFields(site.Id);
         Test.stopTest();
 
         System.assertEquals(testSite.Account__c, acct.Id);
@@ -191,12 +192,16 @@ public class AuroraSpikeControllerTest {
 
     @isTest static void getProjectDesigns() {
         configureCustomSettings();
+        System.debug('setting mock');
         Test.setMock(HttpCalloutMock.class, new AuroraSpikeHttpCalloutMock());
-
+		System.debug('set mock');
+        
         Test.startTest();
         String resStr = AuroraSpikeController.getProjectDesigns('string');
         Test.stopTest();
 
+        System.debug('resStr:');
+        System.debug(resStr);
         String expectedValue = '{"designs": [{"id": "204a9559-de84-4c75-a971-1f7b4abd991e","external_provider_id": null,"name": "Test Design","system_size": 65160.0,"system_size_stc": 65160.0,"system_size_ptc": 61105.6,"system_size_ac": 24000.0}]}';
         System.assertEquals(resStr, expectedValue);
     }
@@ -217,27 +222,10 @@ public class AuroraSpikeControllerTest {
         configureCustomSettings();
 
         Test.startTest();
-        HttpRequest auroraEndpoint = AuroraSpikecontroller.getAuroraEndpoint('/apiEndpoint', 'GET');
+        HttpRequest auroraEndpoint = AuroraSpikecontroller.getAuroraEndpointGet('/apiEndpoint');
         Test.stopTest();
         
         System.assertEquals('GET', auroraEndpoint.getMethod());
         System.assertEquals(true, auroraEndpoint.getEndpoint().contains('/apiEndpoint'));
-    }
-    
-    @isTest static void getAuroraEndpointQueries() {
-        configureCustomSettings();
-
-        List<String> stringQueries = new List<String>();
-        stringQueries.add('queryOne');
-        stringQueries.add('queryTwo');
-        
-        Test.startTest();
-        HttpRequest auroraEndpoint = AuroraSpikecontroller.getAuroraEndpoint('/apiEndpoint', 'GET', stringQueries);
-        Test.stopTest();
-        
-        System.assertEquals('GET', auroraEndpoint.getMethod());
-        System.assertEquals(true, auroraEndpoint.getEndpoint().contains('https://api-sandbox.aurorasolar.com/apiEndpoint'));
-    	System.assertEquals(true, auroraEndpoint.getEndpoint().contains('queryOne'));
-        System.assertEquals(true, auroraEndpoint.getEndpoint().contains('queryTwo'));
     }
 }

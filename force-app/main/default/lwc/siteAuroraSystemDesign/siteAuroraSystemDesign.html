@@ -8,7 +8,7 @@
                             <div class="slds-page-header__name">
                                 <div class="slds-page-header__name-title">
                                     <h1>
-                                        <span class="slds-page-header__title slds-truncate" title="Aurora Design">Pull in Aurora Design</span>
+                                        <span class="slds-page-header__title slds-truncate" title="Aurora Design">Pull in Aurora Arrays</span>
                                     </h1>
                                 </div>
                             </div>
@@ -19,8 +19,8 @@
         </div>
 
         <div class="design-summary">
-            <template if:true={loadingDesignSummary}>
-                <template if:false={noAuroraIdOnQuoteError}>
+            <template if:true={loading}>
+                <template if:false={noAuroraIdOnSiteError}>
                     <lightning-spinner 
                         class="slds-is-relative slds-m-right_x-large"
                         variant="brand"
@@ -30,7 +30,7 @@
                     </lightning-spinner>
                 </template>
             </template>
-            <template if:true={validDesignSummary}>
+            <template if:true={gotDesign}>
                 <div><b>Design Name: </b> {projectDesignOverview.name}</div>
                 <div><b>Arrays:</b></div>
                 <ul class="pv-arrays-list slds-m-around_medium">
@@ -43,8 +43,8 @@
             </template>
         </div>
 
-        <template if:true={noAuroraIdOnQuoteError}>
-            <div style="color:red;">Quote does not have an Aurora ID associated.</div>
+        <template if:true={noAuroraIdOnSiteError}>
+            <div style="color:red;">Site does not have an Aurora ID associated.</div>
         </template>
 
         <template if:true={noArrayError}>
@@ -62,45 +62,50 @@
         </template>
 
         <div class="details-footer slds-m-top_small">
-            <template if:true={disabled}>
-                <lightning-spinner 
-                    class="slds-is-relative slds-m-right_x-large saving-spinner"
-                    variant="brand"
-                    alternative-text="Loading" 
-                    size="small"
-                >
-                </lightning-spinner>
-            </template>
-            <template if:false={disabled}>
+            <template if:false={gotDesign}>
                 <lightning-button
                     class="slds-m-right_large"
                     variant="brand"
                     type="submit"
                     name="aurora"
                     label="Get Design"
-                    onclick={getDesignSummary}
-                    disabled={loadingDesignSummary}
+                    onclick={getAuroraProject}
+                    disabled={loading}
                 >
                 </lightning-button>
-                <lightning-button
-                    class="slds-m-right_large"
-                    variant="brand"
-                    type="submit"
-                    name="save"
-                    label="Save"
-                    onclick={save}
-                    disabled={invalidDesignSummary}
-                >
-                </lightning-button>
-                <template if:true={saveSuccess}>
+            </template>
+            <template if:true={gotDesign}>
+                <template if:false={areExistingAllowedArrays}>
                     <lightning-button
-                        variant="neutral"
-                        name="redirect"
-                        label="Go to PV System Page"
-                        onclick={handlePvSystemRedirect}
+                        class="slds-m-right_large"
+                        variant="brand"
+                        type="submit"
+                        name="save"
+                        label="Save"
+                        onclick={createAllowedArrays}
+                        disabled={invalidDesignSummary}
                     >
                     </lightning-button>
                 </template>
+                <template if:true={areExistingAllowedArrays}>
+                    <lightning-button
+                        class="slds-m-right_large"
+                        variant="brand"
+                        type="submit"
+                        name="save"
+                        label="Overwrite existing"
+                        onclick={overwriteAllowedArrays}
+                        disabled={invalidDesignSummary}
+                    >
+                    </lightning-button>
+                </template>
+                <lightning-button
+                    variant="neutral"
+                    name="cancel"
+                    label="Cancel"
+                    onclick={cancel}
+                >
+                </lightning-button>
             </template>
         </div>
     </div>

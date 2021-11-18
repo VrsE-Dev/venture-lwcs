@@ -1,3 +1,30 @@
 <template>
-    <lightning-button variant="brand" label="New Project" title="New Aurora Project" onclick={createNewAuroraProject} class="slds-m-left_x-small"></lightning-button>
+    <div class="new-quote slds-tabs_card">
+        <div class="slds-text-heading--small">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span class="slds-page-header__title slds-truncate" title="Appointment Details">Create New Aurora Project</span>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="details-footer slds-m-top_small">
+            <lightning-button 
+                variant="brand" 
+                label="New Project" 
+                title="New Aurora Project" 
+                onclick={createNewAuroraProject}
+                disabled={hasAuroraProject}
+            ></lightning-button>
+        </div>
+    </div>
 </template>

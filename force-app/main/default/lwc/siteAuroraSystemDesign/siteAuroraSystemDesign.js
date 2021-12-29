@@ -86,7 +86,8 @@ export default class SiteAuroraSystemDesign extends NavigationMixin(LightningEle
         this.invalidDesignSummary = true;
         this.noArrayError = false;
 
-        this.existingAllowedArrays = await this.getAllowedArrays();
+        this.existingAllowedArrays = await
+         this.getAllowedArrays();
 
         if(this.existingAllowedArrays && this.existingAllowedArrays.length > 0) {
             this.areExistingAllowedArrays = true

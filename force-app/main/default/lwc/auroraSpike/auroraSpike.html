@@ -33,6 +33,7 @@
             <template if:true={validDesignSummary}>
                 <div><b>Design Name: </b> {projectDesignOverview.name}</div>
                 <div><b>System Size: </b> <lightning-formatted-number value={projectDesignOverview.system_size} format-style="decimal" maximum-fraction-digits="0"></lightning-formatted-number></div>
+
                 <template if:true={hasInverter}>
                     <div><b>Inverter: </b> {inverter}</div>
                 </template>

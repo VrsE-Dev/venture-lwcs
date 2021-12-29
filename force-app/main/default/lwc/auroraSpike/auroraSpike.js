@@ -9,7 +9,6 @@ import { updateRecord } from 'lightning/uiRecordApi';
 import { createRecord } from 'lightning/uiRecordApi';
 import { getRecordNotifyChange } from 'lightning/uiRecordApi';
 
-
 import getPVModule from '@salesforce/apex/AuroraSpikeController.getPVModule';
 import getProjectDesigns from '@salesforce/apex/AuroraSpikeController.getProjectDesigns';
 import getDesignSummary from '@salesforce/apex/AuroraSpikeController.getDesignSummary';
@@ -26,6 +25,7 @@ import PV_SYSTEM_PV_MODULES from '@salesforce/schema/PV_System__c.PV_Modules__c'
 import PV_SYSTEM_QUOTE from '@salesforce/schema/PV_System__c.Quote__c';
 import PV_SYSTEM_ACCOUNT from '@salesforce/schema/PV_System__c.Account__c';
 import PV_SYSTEM_STATUS from '@salesforce/schema/PV_System__c.Status__c';
+
 import PV_SYSTEM_INVERTER from '@salesforce/schema/PV_SYSTEM__c.Inverter__c';
 
 import PV_ARRAY from '@salesforce/schema/PV_Array__c';
@@ -60,6 +60,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
     @track pvSystemPageRef;
     
     @track selectedPVModule;
+    @track inverter;
 
     @api recordId;
 
@@ -128,7 +129,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
                 console.log(JSON.stringify(this.designSummary, undefined, 2));
 
                 // map design summary arrays to pv arrays
-                if(this.designSummary.design.arrays && this.designSummary.design.arrays.length > 0) {
+                if(this.designSummary?.design?.arrays && this.designSummary?.design?.arrays.length > 0) {
                     this.validArrays = this.designSummary.design.arrays
                         .filter(pvArray => pvArray.shading && pvArray.shading.total_solar_resource_fraction && pvArray.shading.total_solar_resource_fraction.annual)
         
@@ -138,6 +139,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
                         this.selectedPVModule = await getPVModule({auroraPanelName: this.validArrays[0].module.name});
                         console.log('Got PV Module:');
                         console.log(JSON.stringify(this.selectedPVModule, undefined, 2));
+
                         if (this.designSummary?.design?.string_inverters && this.designSummary?.design?.string_inverters.length > 0) {
                             this.hasInverter = true;
                             this.inverter = this.designSummary?.design?.string_inverters[0].name;
@@ -173,10 +175,11 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
 
         try {
             const pvSystemFields = {};
-            pvSystemFields[PV_SYSTEM_PV_MODULES.fieldApiName]   = this.selectedPVModule.Id;
-            pvSystemFields[PV_SYSTEM_QUOTE.fieldApiName]        = this.recordId;
-            pvSystemFields[PV_SYSTEM_ACCOUNT.fieldApiName]      = this.quote.AccountId;
-            pvSystemFields[PV_SYSTEM_STATUS.fieldApiName]       = 'Proposed';
+            pvSystemFields[PV_SYSTEM_PV_MODULES.fieldApiName]       = this.selectedPVModule.Id;
+            pvSystemFields[PV_SYSTEM_QUOTE.fieldApiName]            = this.recordId;
+            pvSystemFields[PV_SYSTEM_ACCOUNT.fieldApiName]          = this.quote.AccountId;
+            pvSystemFields[PV_SYSTEM_STATUS.fieldApiName]           = 'Proposed';
+            pvSystemFields[PV_SYSTEM_AURORA_INVERTER.fieldApiName]  = this.inverter;
 
             if (this.hasInverter) {
                 pvSystemFields[PV_SYSTEM_INVERTER.fieldApiName] = this.inverter;
@@ -190,18 +193,13 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
                 changes: pvSystemFields
             });
 
-            console.log('--------------');
             console.log('PVSYSTEMID:', pvSystemId);
-            console.log('--------------');
-            // this.showToast('success', 'Successfully saved pv system');
 
             let quoteFields = {};
             quoteFields[QUOTE_ID.fieldApiName] = this.recordId;
             quoteFields[QUOTE_SYSTEM.fieldApiName] = pvSystemId
             quoteFields[QUOTE_AURORA_PRODUCTION.fieldApiName] = this.designSummary.design.energy_production.annual.toString();
-
             await updateRecord({fields: quoteFields});
-            // this.showToast('success', `Successfully associated quote with new pv system`);
 
             console.log(this.designSummary.design.arrays);
             console.log(this.designSummary.design.arrays[0].module);
@@ -232,7 +230,6 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
                         fields: pvArrayFields
                     });
 
-                    // this.showToast('success', `Successfully saved pv array ${createdPvArray.id} associated with system`);
                 });
 
             console.log('completed all saving!!!!!!!!');
@@ -248,25 +245,17 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
                 }
             };
             
-            console.log('-------------------')
             console.log('pvSystemPageRef:');
             console.log(JSON.stringify(this.pvSystemPageRef, undefined, 2));
-            console.log('-------------------')
 
             this[NavigationMixin.GenerateUrl](this.pvSystemPageRef)
                 .then(url => { 
-                    console.log('-------------------')
-                    console.log('in navigation mixin');
                     this.pvSystemUrl = url; 
-                    console.log('this.pvSystemUrl:');
                     console.log(this.pvSystemUrl);
-                    console.log('-------------------')
                 })
                 .catch(e => {
-                    console.log('-------------------')
                     console.log('error trying to create navigation mixin:');
                     console.log(JSON.stringify(e, undefined, 2));
-                    console.log('-------------------')
                 })
 
             this.saveSuccess = true;

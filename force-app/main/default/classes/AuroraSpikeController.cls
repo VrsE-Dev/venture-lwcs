@@ -100,7 +100,9 @@ public with sharing class AuroraSpikeController {
             account = [
                 SELECT
                     Id,
-                    Site
+                    Site,
+                    BillingAddress,
+                    OwnerId
                 FROM 
                     Account 
                 WHERE
@@ -114,7 +116,7 @@ public with sharing class AuroraSpikeController {
     }
 
     @AuraEnabled(Cacheable=true)
-    public static Site__c getSiteFields(String accountId){
+    public static Site__c getSiteFields(String siteId){
         try {
             Site__c site = new Site__c();
     
@@ -126,14 +128,14 @@ public with sharing class AuroraSpikeController {
                 FROM 
                     Site__c
                 WHERE
-                    Account__c = :accountId
+                    Id = :siteId
                 LIMIT
                     1
             ].get(0);
     
             return site;
         } catch(Exception e) {
-            throw new AuraHandledException('Couldnt find Site associated with Account Id: ' + accountId);
+            throw new AuraHandledException('Couldnt find Site associated with Account Id: ' + siteId);
         }
     }
 
@@ -142,7 +144,7 @@ public with sharing class AuroraSpikeController {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId = auroraSettings.Tenant_Id__c;
         // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/projects/' + projectId + '/designs'); 
+        HttpRequest httpRequest = getAuroraEndpointGet('tenants/' + tenantId + '/projects/' + projectId + '/designs'); 
 
         String strResponse = null;
         try {  
@@ -150,13 +152,16 @@ public with sharing class AuroraSpikeController {
             HttpResponse httpResponse = http.send(httpRequest);  
             if (httpResponse.getStatusCode() == 200 ) {  
                 strResponse = httpResponse.getBody();  
+                System.debug('strResponse:');
+        		System.debug(strResponse);
+                
                 System.debug(strResponse);
             } 
             else {  
                 throw new CalloutException(httpResponse.getBody());  
             } 
         } 
-        catch(Exception ex) {  
+        catch(Exception ex) {
             throw ex;  
         } 
 
@@ -166,14 +171,36 @@ public with sharing class AuroraSpikeController {
             return null;
         }
     }
-    
+
+    @AuraEnabled(Cacheable=true)
+    public static string getContactName(string accountId){
+        try{
+            Contact user = new Contact();
+
+            user = [
+                SELECT
+                    id, 
+                    Full_Name__c,
+                    AccountId
+                FROM 
+                    Contact
+                WHERE
+                    AccountId = :accountId
+                LIMIT 1
+            ].get(0);
+            return user.Full_Name__c;
+        }
+        catch(Exception e) {
+            throw new AuraHandledException('Couldnt find Contact associated with AccountId: ' + accountId);
+        }
+    }
+
     @AuraEnabled(Cacheable=true)
     public static string getDesignSummary(String designId){
         System.debug('Design Id: ' + designId);
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
         String tenantId  = auroraSettings.Tenant_Id__c;
-        // String tenantId  = '3d26171f-d1f3-4a9e-af93-9040f89e8fd1';
-        HttpRequest httpRequest = getAuroraEndpoint('/v2/tenants/' + tenantId + '/designs/' + designId + '/summary'); 
+        HttpRequest httpRequest = getAuroraEndpointGet('tenants/' + tenantId + '/designs/' + designId + '/summary'); 
 
         String strResponse = null;
         try {  
@@ -200,132 +227,20 @@ public with sharing class AuroraSpikeController {
     }
     
     @TestVisible 
-    private static HttpRequest getAuroraEndpoint(String apiEndpoint) {
+    private static HttpRequest getAuroraEndpointGet(String apiEndpoint) {
         Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String baseUrl   = auroraSettings.Base_URL__c;
-        // String baseUrl   = 'https://api-sandbox.aurorasolar.com';
-        String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
-        // String auroraKey = 'AuroraKey=3a35ce58-b703-4472-bbac-b5c5036edef2';
+        
+        String baseUrl   = auroraSettings.Base_URL__c + '/v2/';
+        String auroraKey = auroraSettings.Aurora_Secret_New__c;
         String requestVerb = 'GET';
-        
-        System.debug('unencoded time: ' + Datetime.now());
-        String timestamp = 'Timestamp=' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20');
-        timestamp = timestamp.replaceAll('%3A', ':');
-        
-        System.debug('encoded time: ' + timestamp);
-        
-        String signature = 'Signature=' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp);
-		
-        String endpoint = baseUrl + apiEndpoint + '?' + auroraKey + '&' + timestamp + '&' + signature;
 
-        System.debug('endpoint: ' + endpoint);
         HttpRequest httpRequest = new HttpRequest();  
-        httpRequest.setEndpoint(endpoint);
+        System.debug(baseUrl + apiEndpoint);
+        httpRequest.setEndpoint(baseUrl + apiEndpoint);
+        httpRequest.setHeader('Authorization', auroraKey);
         httpRequest.setMethod(requestVerb);
 
         return httpRequest;
-    }
-    
-    @TestVisible 
-    private static HttpRequest getAuroraEndpoint(String apiEndpoint, List<String> stringQueries) {
-        String baseUrl   = 'https://api-sandbox.aurorasolar.com';
-        Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String auroraKey = 'AuroraKey=' + auroraSettings.Aurora_Key__c;
-        String requestVerb = 'GET';
-        
-        System.debug('unencoded time: ' + Datetime.now());
-        String timestamp = 'Timestamp=' + EncodingUtil.urlEncode((Datetime.now() + ' UTC'), 'UTF-8').replaceAll('\\+', '%20');
-        timestamp = timestamp.replaceAll('%3A', ':');
-        
-        System.debug('encoded time: ' + timestamp);
-        
-        String signature = 'Signature=' + calculateSignature(requestVerb, apiEndpoint, auroraKey, timestamp, stringQueries);
-		
-        String queryString = '';
-        for (Integer i = 0; i < stringQueries.size(); i++) {
-            queryString = queryString + stringQueries[i];
-        }
-        
-        String endpoint = baseUrl + apiEndpoint + '?' + auroraKey + '&' + timestamp + '&' + queryString + '&' + signature;
-
-        System.debug('endpoint: ' + endpoint);
-        HttpRequest httpRequest = new HttpRequest();  
-        httpRequest.setEndpoint(endpoint);
-        httpRequest.setMethod(requestVerb);
-
-        return httpRequest;
-    }
-
-    @TestVisible 
-    private static String calculateSignature(String requestVerb, String apiEndpoint, String auroraKey, String timestamp) { 
-        String[] parameters = new List<String>();
-        parameters.add(requestVerb + '\n');
-        parameters.add(apiEndpoint + '\n');
-        parameters.add(auroraKey + '\n');
-        parameters.add(timestamp + '\n');      
-        
-        String canonicalSignature = '';
-        for (Integer i = 0; i < parameters.size(); i++) {
-            canonicalSignature = canonicalSignature + parameters[i];
-        }
-        System.debug('canonical signature:');
-		System.debug(canonicalSignature);
-        
-        Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String auroraSecret = auroraSettings.Aurora_Secret__c;
-        
-        Blob hmac = crypto.generateMac('HmacSHA256', Blob.valueOf(canonicalSignature), Blob.valueOf(auroraSecret));
-        //System.debug('signature bytes:');
-        //System.debug(hmac.toString());
-        
-        String signature64 = EncodingUtil.base64Encode(hmac);
-        System.debug('signature 64:');
-        System.debug(signature64);
-      
-        String signature = EncodingUtil.urlEncode(signature64, 'UTF-8');
-        return signature;
-    }
-    
-    @TestVisible 
-    private static String calculateSignature(String requestVerb, String apiEndpoint, String auroraKey, String timestamp, List<String> stringQueries) { 
-        AuroraParam[] queries = new List<AuroraParam>();
-        for (Integer i = 0; i < stringQueries.size(); i++) {
-            queries.add(new AuroraParam(stringQueries[i]));
-        }
-        queries.sort();
-        
-        String queryString = '';
-        for (Integer i = 0; i < queries.size(); i++) {
-            queryString = queryString + queries[i].param;
-        }
-        
-        String[] parameters = new List<String>();
-        parameters.add(requestVerb + '\n');
-        parameters.add(apiEndpoint + '\n');
-        parameters.add(auroraKey + '\n');
-        parameters.add(timestamp + '\n');
-        parameters.add(queryString + '\n');
-        
-        String canonicalSignature = '';
-        for (Integer i = 0; i < parameters.size(); i++) {
-            canonicalSignature = canonicalSignature + parameters[i];
-        }
-        System.debug('canonical signature:');
-		System.debug(canonicalSignature);
-        
-        Aurora_Settings__c auroraSettings = Aurora_Settings__c.getInstance();
-        String auroraSecret = auroraSettings.Aurora_Secret__c;
-        
-        Blob hmac = crypto.generateMac('HmacSHA256', Blob.valueOf(canonicalSignature), Blob.valueOf(auroraSecret));
-        //System.debug('signature bytes:');
-        //System.debug(hmac.toString());
-        
-        String signature64 = EncodingUtil.base64Encode(hmac);
-        System.debug('signature 64:');
-        System.debug(signature64);
-      
-        String signature = EncodingUtil.urlEncode(signature64, 'UTF-8');
-        return signature;
     }
 
     @TestVisible 

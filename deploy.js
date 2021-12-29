@@ -16,11 +16,7 @@ async function main () {
         console.log('zipped');
         console.log('-----------');
 
-        exec('sfdx force:mdapi:deploy --zipfile tmp_convert.zip --targetusername partCopy');
-        console.log('begun deployment');
-        console.log('-----------');
-
-        exec('sfdx force:mdapi:deploy:report -u partCopy -w 10');
+        exec('sfdx force:mdapi:deploy --zipfile tmp_convert.zip --targetusername partCopy -w 10');
         console.log('finished deployment');
         console.log('-----------');
 

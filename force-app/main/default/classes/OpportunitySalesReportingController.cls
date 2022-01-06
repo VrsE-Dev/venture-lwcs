@@ -21,4 +21,18 @@ public with sharing class OpportunitySalesReportingController {
 
         return quotes;
     }
+
+    @AuraEnabled
+    public static Map<String, String> getAppointmentStatusPicklistValues(){
+        Schema.DescribeFieldResult objFieldDescribe = Event.Appointment_Status__c.getDescribe();
+        List<Schema.PicklistEntry> lstPicklistValues = objFieldDescribe.getPickListValues();
+        Map <String, String> mappedPicklistValues = new Map<String, String>();
+
+        for (Schema.PicklistEntry objPicklist : lstPicklistValues) {
+            System.debug('Value = ' +objPicklist.getValue() +' , Label = ' +objPicklist.getLabel());
+            mappedPicklistValues.put(objPicklist.getValue(), objPicklist.getLabel());
+        }
+
+        return mappedPicklistValues;
+    }
 }

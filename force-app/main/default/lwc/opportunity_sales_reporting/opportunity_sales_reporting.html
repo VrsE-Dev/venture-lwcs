@@ -1,19 +1,20 @@
+<!-- sldsValidatorIgnore -->
 <template>
     <div style="height: 300px;">
-        <lightning-datatable
+        <c-custom-data-table
                 key-field="Id"
                 data={appointments}
                 show-row-number-column
                 columns={appointmentColumns}>
-        </lightning-datatable>
+        </c-custom-data-table>
     </div>
 
     <div style="height: 300px;">
-        <lightning-datatable
+        <c-custom-data-table
                 key-field="Id"
                 data={quotes}
                 show-row-number-column
                 columns={quoteColumns}>
-        </lightning-datatable>
+        </c-custom-data-table>
     </div>
 </template>

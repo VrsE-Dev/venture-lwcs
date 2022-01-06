@@ -1,0 +1,19 @@
+<template>
+    <div style="height: 300px;">
+        <lightning-datatable
+                key-field="Id"
+                data={appointments}
+                show-row-number-column
+                columns={appointmentColumns}>
+        </lightning-datatable>
+    </div>
+
+    <div style="height: 300px;">
+        <lightning-datatable
+                key-field="Id"
+                data={quotes}
+                show-row-number-column
+                columns={quoteColumns}>
+        </lightning-datatable>
+    </div>
+</template>

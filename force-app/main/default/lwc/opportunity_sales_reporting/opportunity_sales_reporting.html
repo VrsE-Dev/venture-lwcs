@@ -1,20 +1,139 @@
 <!-- sldsValidatorIgnore -->
 <template>
-    <div style="height: 300px;">
-        <c-custom-data-table
-                key-field="Id"
-                data={appointments}
-                show-row-number-column
-                columns={appointmentColumns}>
-        </c-custom-data-table>
-    </div>
+    <div class="slds-tabs_card">
+        <div class="slds-text-heading--small">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span class="slds-page-header__title slds-truncate" title="Report a Sale">Report a Sale</span>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <template for:each={steps} for:item="step" key={step.id}>
+            <template if:true={step.isFirst}>
+                <template if:true={step.current}>
+                    <div key={step.id}>
+                        <h3>Select Appointment:</h3>
+                        <div style="height: 150px;">
+                            <lightning-datatable
+                                key-field="Id"
+                                data={appointments}
+                                columns={appointmentColumns}
+                                onrowselection={handleAppointmentSelection}
+                                selected-rows={appointmentSelectedRows}
+                            >
+                            </lightning-datatable>
+                        </div>
+    
+                        <lightning-button
+                            class="slds-m-right_large"
+                            variant="brand"
+                            type="submit"
+                            name="save"
+                            label="Next"
+                            onclick={saveAppointmentSelection}
+                            disabled={step.invalid}
+                        >
+                        </lightning-button>
+                        <lightning-button
+                            variant="neutral"
+                            name="cancel"
+                            label="Cancel"
+                            onclick={cancel}
+                        >
+                        </lightning-button>
+                    </div>
+                </template>
+            </template>
 
-    <div style="height: 300px;">
-        <c-custom-data-table
-                key-field="Id"
-                data={quotes}
-                show-row-number-column
-                columns={quoteColumns}>
-        </c-custom-data-table>
+            <template if:true={step.isSecond}>
+                <template if:true={step.current}>
+                    <div key={step.id}>
+                        <h3>Update Appointment:</h3>
+
+                        <div>
+                            <lightning-combobox
+                                name="status"
+                                label="Appointment Status"
+                                value={appointmentSelected.Appointment_Status__c}
+                                placeholder="Select Appointment"
+                                options={appointmentStatusPicklistValues}
+                                onchange={handleAppointmentStatusPicklistChanged}>
+                            </lightning-combobox>
+
+                            <lightning-input 
+                                name="resultNotes" 
+                                type="text" 
+                                class="resultNotes"
+                                value={appointmentSelected.Notes__c}
+                                label="Result notes">
+                            </lightning-input>
+                        </div>
+                        
+                        <lightning-button
+                            class="slds-m-right_large"
+                            variant="brand"
+                            type="submit"
+                            name="save"
+                            label="Next"
+                            onclick={saveAppointmentUpdate}
+                        >
+                        </lightning-button>
+                        <lightning-button
+                            variant="neutral"
+                            name="cancel"
+                            label="Cancel"
+                            onclick={cancel}
+                        >
+                        </lightning-button>
+                    </div>
+                </template>
+            </template>
+
+            <template if:true={step.isThird}>
+                <template if:true={step.current}>
+                    <div key={step.id}>
+                        <h3>Select Quote:</h3>
+                        <div style="height: 150px;">
+                            <lightning-datatable
+                                key-field="Id"
+                                data={quotes}
+                                columns={quoteColumns}
+                                onrowselection={handleQuoteSelection}
+                            >
+                            </lightning-datatable>
+                        </div>
+                    
+                        <lightning-button
+                            class="slds-m-right_large"
+                            variant="brand"
+                            type="submit"
+                            name="save"
+                            label="Save"
+                            onclick={save}
+                            disabled={step.invalid}
+                        >
+                        </lightning-button>
+                        <lightning-button
+                            variant="neutral"
+                            name="cancel"
+                            label="Cancel"
+                            onclick={cancel}
+                        >
+                        </lightning-button>
+                    </div>
+                </template>
+            </template>
+        </template>
     </div>
 </template>

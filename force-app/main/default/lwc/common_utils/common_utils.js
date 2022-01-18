@@ -1,3 +1,5 @@
+import { ShowToastEvent } from 'lightning/platformShowToastEvent'
+
 export function parseRecord(data) {
     const object = {};
     
@@ -6,4 +8,14 @@ export function parseRecord(data) {
     });
 
     return object;
+}
+
+export function showToast(variant, message) {
+    const toast = new ShowToastEvent({
+        title: variant.charAt(0).toUpperCase() + variant.slice(1),
+        message,
+        variant
+    });
+
+    return toast;
 }

@@ -3,15 +3,20 @@
 /* eslint-disable no-unused-expressions */
 import { LightningElement, api, wire, track } from 'lwc';
 import { getRecord } from 'lightning/uiRecordApi';
-// import { getObjectInfo } from 'lightning/uiObjectInfoApi';
-// import { getPicklistValues } from 'lightning/uiObjectInfoApi';
 
 import getQuotes from '@salesforce/apex/OpportunitySalesReportingController.getQuotes';
+import getQuoteRoofAgePicklistValues from '@salesforce/apex/OpportunitySalesReportingController.getQuoteRoofAgePicklistValues';
+import getQuoteShingleLayersPicklistValues from '@salesforce/apex/OpportunitySalesReportingController.getQuoteShingleLayersPicklistValues';
+import getQuoteFinanceTypePicklistValues from '@salesforce/apex/OpportunitySalesReportingController.getQuoteFinanceTypePicklistValues';
 import getAppointments from '@salesforce/apex/OpportunitySalesReportingController.getAppointments';
 import getAppointmentStatusPicklistValues from '@salesforce/apex/OpportunitySalesReportingController.getAppointmentStatusPicklistValues';
 import reportSale from '@salesforce/apex/OpportunitySalesReportingController.reportSale';
 
 import OPPORTUNITY_ID from '@salesforce/schema/Opportunity.Id';
+import QUOTE_NOTES_FROM_SALES_REP from '@salesforce/schema/Quote.Notes_from_Sales_Rep__c';
+import QUOTE_ROOF_AGE from '@salesforce/schema/Quote.Roof_age__c';
+import QUOTE_LAYERS_OF_SHINGLES from '@salesforce/schema/Quote.Layers_of_shingles__c';
+import QUOTE_ACCEPTED_FINANCE_TYPE from '@salesforce/schema/Quote.Accepted_Finance_Type__c'
 import APPOINTMENT_STATUS from '@salesforce/schema/Event.Appointment_Status__c';
 import APPOINTMENT_NOTES from '@salesforce/schema/Event.Notes__c';
 
@@ -35,6 +40,11 @@ export default class OpportunitySalesReporting extends LightningElement {
         isThird: true,
         current: false,
         invalid: true
+    }, {
+        id: 3,
+        isFourth: true,
+        current: false,
+        invalid: true
     }];
 
     @track opportunity; 
@@ -42,14 +52,20 @@ export default class OpportunitySalesReporting extends LightningElement {
     @track appointments = [];
     @track appointmentSelectedRows = [];
     @track appointmentSelected;
+
     appointmentStatusPicklistValues;
     appointmentColumns;
     appointmentMetadata;
 
     @track quotes = [];
     @track quoteSelected;
+
+    quoteFinanceTypePicklistValues;
+    quoteRoofAgePicklistValues;
+    quoteShingleLayersPicklistValues;
     quoteColumns;
 
+    @track loading = false;
 
     @wire(
         getRecord,
@@ -77,11 +93,11 @@ export default class OpportunitySalesReporting extends LightningElement {
     }
 
     async getAppointments() {
-        const picklistValues = await getAppointmentStatusPicklistValues();
+        const appointmentStatusPicklistValues = await getAppointmentStatusPicklistValues();
         console.log('picklistValues:');
-        console.log(JSON.stringify(picklistValues, undefined, 2));
+        console.log(JSON.stringify(appointmentStatusPicklistValues, undefined, 2));
 
-        this.appointmentStatusPicklistValues =  Object.keys(picklistValues).map(key => {
+        this.appointmentStatusPicklistValues =  Object.keys(appointmentStatusPicklistValues).map(key => {
             return {
                 label: key,
                 value: key
@@ -98,6 +114,39 @@ export default class OpportunitySalesReporting extends LightningElement {
     }
     
     async getQuotes() {
+        const quoteRoofAgePicklistValues = await getQuoteRoofAgePicklistValues();
+        console.log('quoteRoofAgePicklistValues:');
+        console.log(JSON.stringify(quoteRoofAgePicklistValues, undefined, 2));
+
+        this.quoteRoofAgePicklistValues =  Object.keys(quoteRoofAgePicklistValues).map(key => {
+            return {
+                label: key,
+                value: key
+            }
+        });
+
+        const quoteShingleLayersPicklistValues = await getQuoteShingleLayersPicklistValues();
+        console.log('quoteShingleLayersPicklistValues:');
+        console.log(JSON.stringify(quoteShingleLayersPicklistValues, undefined, 2));
+
+        this.quoteShingleLayersPicklistValues =  Object.keys(quoteShingleLayersPicklistValues).map(key => {
+            return {
+                label: key,
+                value: key
+            }
+        });
+
+        const quoteFinanceTypePicklistValues = await getQuoteFinanceTypePicklistValues();
+        console.log('quoteFinanceTypePicklistValues:');
+        console.log(JSON.stringify(quoteFinanceTypePicklistValues, undefined, 2));
+
+        this.quoteFinanceTypePicklistValues =  Object.keys(quoteFinanceTypePicklistValues).map(key => {
+            return {
+                label: key,
+                value: key
+            }
+        });
+
         this.quoteColumns = [
             { label: 'Name', fieldName: 'StartDateTime' },
             { label: 'Status', fieldName: 'Status', type: 'text' },
@@ -125,6 +174,7 @@ export default class OpportunitySalesReporting extends LightningElement {
     }
 
     cancel() {
+        this.loading = false;
         this.currentStep = 1;
         this.steps.forEach((step, index) => {
             step.current = index + 1 === this.currentStep ? true : false;
@@ -136,38 +186,15 @@ export default class OpportunitySalesReporting extends LightningElement {
         this.quoteSelectedRows = [];
     }
 
-   
-    // handleAppointmentCellChange(event) {
-    //     this.updateDraftValues(event.detail.draftValues[0], this.appointmentDraftValues);
-    //     console.log('this.appointmentDraftValues:', JSON.stringify(this.appointmentDraftValues, undefined, 2));
-    // }
-
-    // async handleAppointmentSave() {
-    //     console.log('appointment draft data:', JSON.stringify(this.appointmentDraftValues, undefined, 2));
-    //     for(let i = 0; i < this.appointmentDraftValues.length; i++) {
-    //         const appointmentUpdate = this.appointmentDraftValues[i];
-    //         console.log('appointmentUpdate:', JSON.stringify(appointmentUpdate, undefined, 2));
-    //         const appointmentFields = {};
-
-    //         appointmentFields[APPOINTMENT_STATUS.fieldApiName] = appointmentUpdate.Appointment_Status__c;
-    //         appointmentFields[APPOINTMENT_NOTES.fieldApiName] = appointmentUpdate.Notes__c
-
-    //         console.log('appointmentFields:', JSON.stringify(appointmentFields, undefined, 2));
-    //         await updateAppointment({
-    //             appointmentId: appointmentUpdate.Id,
-    //             changes: appointmentFields
-    //         });
-    //     }
-    // }
-
     handleAppointmentSelection(event) {
         event.stopPropagation();
         console.log('Handle appointment selection:', JSON.stringify(event, undefined, 2));
         
         this.setStepValidity(false);
 
-        if (event.detail.selectedRows.length === 1) {
-            this.appointmentSelected = event.detail.selectedRows[0];
+        const selectedRows = [...event.detail.selectedRows];
+        if (selectedRows.length === 1) {
+            this.appointmentSelected = Object.assign({}, selectedRows[0]);
             this.setStepValidity(true);
         } 
     }
@@ -189,6 +216,7 @@ export default class OpportunitySalesReporting extends LightningElement {
     }
 
     saveAppointmentUpdate() {
+        this.appointmentSelected.Notes__c = this.template.querySelector('.resultNotes').value;
         this.incrementStepCurrent();
     }
 
@@ -198,30 +226,123 @@ export default class OpportunitySalesReporting extends LightningElement {
 
         this.setStepValidity(false);
         
-        if (event.detail.selectedRows.length === 1) {
-            this.quoteSelected = event.detail.selectedRows[0];
+        const selectedRows = [...event.detail.selectedRows];
+        if (selectedRows.length === 1) {
+            this.quoteSelected = selectedRows[0];
             this.setStepValidity(true);
+        }
+    }
+
+    saveQuoteSelection() {
+        this.checkQuoteValidity();
+        this.incrementStepCurrent();
+    }
+
+    handleQuoteContractNotesChanged(event) {
+        console.log('Handle Quote contract notes changed:', JSON.stringify(event.detail.value, undefined, 2));
+        
+        this.quoteSelected.Notes_from_Sales_Rep__c = event?.detail?.value;
+        this.checkQuoteValidity();
+    }
+
+    handleQuoteRoofAgePicklistChanged(event) {
+        console.log('Handle Quote Roof Age Picklist Changed:', JSON.stringify(event.detail.value, undefined, 2));
+
+        this.quoteSelected.Roof_age__c = event?.detail?.value;
+        this.checkQuoteValidity();
+    }
+
+    handleQuoteShingleLayersPicklistChanged(event) {
+        console.log('Handle Quote Shingle Layers Picklist Changed:', JSON.stringify(event.detail.value, undefined, 2));
+
+        this.quoteSelected.Layers_of_shingles__c = event?.detail?.value;
+        this.checkQuoteValidity();
+    }
+
+    handleQuoteFinanceTypePicklistChanged(event) {
+        console.log('Handle Quote Shingle Layers Picklist Changed:', JSON.stringify(event.detail.value, undefined, 2));
+
+        this.quoteSelected.Accepted_Finance_Type__c = event?.detail?.value;
+        this.checkQuoteValidity();
+    }
+
+    checkQuoteValidity() {
+        this.setStepValidity(false);
+
+        if (
+            this.quoteSelected.Notes_from_Sales_Rep__c && 
+            this.quoteSelected.Roof_age__c &&
+            this.quoteSelected.Layers_of_shingles__c &&
+            this.quoteSelected.Accepted_Finance_Type__c
+        ) {
+                this.setStepValidity(true);
         }
     }
 
     async save() {
         const appointmentUpdates = {};
         appointmentUpdates[APPOINTMENT_STATUS.fieldApiName] = this.appointmentSelected.Appointment_Status__c;
-        appointmentUpdates[APPOINTMENT_NOTES.fieldApiName] = this.appointmentSelected.Notes__c
+        appointmentUpdates[APPOINTMENT_NOTES.fieldApiName] = this.appointmentSelected.Notes__c;
+
+
+        const quoteUpdates = {};
+        quoteUpdates[QUOTE_NOTES_FROM_SALES_REP.fieldApiName] = this.quoteSelected.Notes_from_Sales_Rep__c;
+        quoteUpdates[QUOTE_ROOF_AGE.fieldApiName] = this.quoteSelected.Roof_age__c;
+        quoteUpdates[QUOTE_LAYERS_OF_SHINGLES.fieldApiName] = this.quoteSelected.Layers_of_shingles__c;
+        quoteUpdates[QUOTE_ACCEPTED_FINANCE_TYPE.fieldApiName] = this.quoteSelected.Accepted_Finance_Type__c;
 
         try {
+            this.loading = true;
+
+            console.log(JSON.stringify({
+                opportunityId: this.opportunity.Id,
+                quoteId: this.quoteSelected.Id,
+                appointmentId: this.appointmentSelected.Id,
+                appointmentUpdates,
+                quoteUpdates
+            }, undefined, 2));
+
             await reportSale({
                 opportunityId: this.opportunity.Id,
                 quoteId: this.quoteSelected.Id,
                 appointmentId: this.appointmentSelected.Id,
-                appointmentUpdates
+                appointmentUpdates,
+                quoteUpdates
             });
 
             this.dispatchEvent(showToast('success', 'Your sale has been recorded!'));
             this.cancel();
         } catch (e) {
             console.log(JSON.stringify(e, undefined, 2));
-            this.dispatchEvent(showToast('error', `Error recording sale: ${JSON.stringify(e)}`));
+
+            this.loading = false;
+
+            let errorMsg = '';
+            if (e?.body?.fieldErrors) {
+                Object.keys(e.body.fieldErrors).forEach(fieldKey => {
+                    const fieldKeyErrors = e.body.fieldErrors[fieldKey];
+                    fieldKeyErrors.forEach(fieldKeyError => {
+                        if (fieldKeyError.message) {
+                            errorMsg += fieldKeyError.message + '\n'; 
+                        }
+                    });
+                });
+            }
+
+            if (e?.body?.pageErrors) {
+                const pageErrors = e.body.pageErrors;
+                pageErrors.forEach(pageError => {
+                    if (pageError.message) {
+                        errorMsg += pageError.message + '\n' 
+                    }
+                });
+            }
+
+            if (errorMsg === '') {
+                errorMsg = JSON.stringify(e, undefined, 2);
+            }
+
+            this.dispatchEvent(showToast('error', `Error recording sale: \n ${errorMsg}`));
         }
     }
 }

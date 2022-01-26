@@ -35,23 +35,26 @@
                             </lightning-datatable>
                         </div>
     
-                        <lightning-button
-                            class="slds-m-right_large"
-                            variant="brand"
-                            type="submit"
-                            name="save"
-                            label="Next"
-                            onclick={saveAppointmentSelection}
-                            disabled={step.invalid}
-                        >
-                        </lightning-button>
-                        <lightning-button
-                            variant="neutral"
-                            name="cancel"
-                            label="Cancel"
-                            onclick={cancel}
-                        >
-                        </lightning-button>
+
+                        <div class="slds-m-top_small">
+                            <lightning-button
+                                class="slds-m-right_large"
+                                variant="brand"
+                                type="submit"
+                                name="save"
+                                label="Next"
+                                onclick={saveAppointmentSelection}
+                                disabled={step.invalid}
+                            >
+                            </lightning-button>
+                            <lightning-button
+                                variant="neutral"
+                                name="cancel"
+                                label="Cancel"
+                                onclick={cancel}
+                            >
+                            </lightning-button>
+                        </div>
                     </div>
                 </template>
             </template>
@@ -80,22 +83,24 @@
                             </lightning-input>
                         </div>
                         
-                        <lightning-button
-                            class="slds-m-right_large"
-                            variant="brand"
-                            type="submit"
-                            name="save"
-                            label="Next"
-                            onclick={saveAppointmentUpdate}
-                        >
-                        </lightning-button>
-                        <lightning-button
-                            variant="neutral"
-                            name="cancel"
-                            label="Cancel"
-                            onclick={cancel}
-                        >
-                        </lightning-button>
+                        <div class="slds-m-top_small">
+                            <lightning-button
+                                class="slds-m-right_large"
+                                variant="brand"
+                                type="submit"
+                                name="save"
+                                label="Next"
+                                onclick={saveAppointmentUpdate}
+                            >
+                            </lightning-button>
+                            <lightning-button
+                                variant="neutral"
+                                name="cancel"
+                                label="Cancel"
+                                onclick={cancel}
+                            >
+                            </lightning-button>
+                        </div>
                     </div>
                 </template>
             </template>
@@ -114,23 +119,105 @@
                             </lightning-datatable>
                         </div>
                     
-                        <lightning-button
-                            class="slds-m-right_large"
-                            variant="brand"
-                            type="submit"
-                            name="save"
-                            label="Save"
-                            onclick={save}
-                            disabled={step.invalid}
-                        >
-                        </lightning-button>
-                        <lightning-button
-                            variant="neutral"
-                            name="cancel"
-                            label="Cancel"
-                            onclick={cancel}
-                        >
-                        </lightning-button>
+                        <div class="slds-m-top_small">
+                            <lightning-button
+                                class="slds-m-right_large"
+                                variant="brand"
+                                type="submit"
+                                name="save"
+                                label="Next"
+                                onclick={saveQuoteSelection}
+                                disabled={step.invalid}
+                            >
+                            </lightning-button>
+                            <lightning-button
+                                variant="neutral"
+                                name="cancel"
+                                label="Cancel"
+                                onclick={cancel}
+                            >
+                            </lightning-button>
+                        </div>
+                    </div>
+                </template>
+            </template>
+
+
+            <template if:true={step.isFourth}>
+                <template if:true={step.current}>
+                    <div key={step.id}>
+                        <h3>Update Quote:</h3>
+
+                        <div>
+                            <lightning-input 
+                                name="contractNotes" 
+                                type="text" 
+                                class="contractNotes"
+                                value={quoteSelected.Notes_from_Sales_Rep__c}
+                                label="Result notes"
+                                onchange={handleQuoteContractNotesChanged}>
+                            </lightning-input>
+
+                            <lightning-combobox
+                                name="roofAge"
+                                label="Roof Age"
+                                value={quoteSelected.Roof_age__c}
+                                placeholder="Select Roof Age"
+                                options={quoteRoofAgePicklistValues}
+                                onchange={handleQuoteRoofAgePicklistChanged}>
+                            </lightning-combobox>
+
+                            <lightning-combobox
+                                name="shingleLayers"
+                                label="Layers of Shingles"
+                                value={quoteSelected.Layers_of_shingles__c}
+                                placeholder="Select Layers of Shingles"
+                                options={quoteShingleLayersPicklistValues}
+                                onchange={handleQuoteShingleLayersPicklistChanged}>
+                            </lightning-combobox>
+
+                            <lightning-combobox
+                                name="financeType"
+                                label="Accepted Finance Type"
+                                value={quoteSelected.Accepted_Finance_Type__c}
+                                placeholder="Select Accepted Finance Type"
+                                options={quoteFinanceTypePicklistValues}
+                                onchange={handleQuoteFinanceTypePicklistChanged}>
+                            </lightning-combobox>
+                        </div>
+                        
+                        <div class="slds-m-top_small">
+                            <template if:true={loading}>
+                                <lightning-spinner 
+                                    class="slds-is-relative slds-m-right_x-large slds-m-left_small"
+                                    variant="brand"
+                                    alternative-text="Loading" 
+                                    size="small"
+                                >
+                                </lightning-spinner>
+                            </template>
+                            <template if:false={loading}>
+                                <lightning-button
+                                    class="slds-m-right_large"
+                                    variant="brand"
+                                    type="submit"
+                                    name="save"
+                                    label="Save"
+                                    onclick={save}
+                                    disabled={step.invalid}
+                                >
+                                </lightning-button>
+                            </template>
+    
+                            <lightning-button
+                                variant="neutral"
+                                name="cancel"
+                                label="Cancel"
+                                onclick={cancel}
+                                disabled={loading}
+                            >
+                            </lightning-button>
+                        </div>
                     </div>
                 </template>
             </template>

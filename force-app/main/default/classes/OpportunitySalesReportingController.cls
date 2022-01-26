@@ -30,26 +30,38 @@ public with sharing class OpportunitySalesReportingController {
     @AuraEnabled
     public static Map<String, String> getAppointmentStatusPicklistValues(){
         Schema.DescribeFieldResult objFieldDescribe = Event.Appointment_Status__c.getDescribe();
-        List<Schema.PicklistEntry> lstPicklistValues = objFieldDescribe.getPickListValues();
-        Map <String, String> mappedPicklistValues = new Map<String, String>();
-
-        for (Schema.PicklistEntry objPicklist : lstPicklistValues) {
-            System.debug('Value = ' +objPicklist.getValue() +' , Label = ' +objPicklist.getLabel());
-            mappedPicklistValues.put(objPicklist.getValue(), objPicklist.getLabel());
-        }
-
-        return mappedPicklistValues;
+        return getMappedPicklistValues(objFieldDescribe);
     }
 
     @AuraEnabled
-    public static void reportSale(String opportunityId, String quoteId, String appointmentId, Map<String, Object> appointmentUpdates){
+    public static Map<String, String> getQuoteRoofAgePicklistValues(){
+        Schema.DescribeFieldResult objFieldDescribe = Quote.Roof_age__c.getDescribe();
+        return getMappedPicklistValues(objFieldDescribe);
+    }
+
+    @AuraEnabled
+    public static Map<String, String> getQuoteShingleLayersPicklistValues(){
+        Schema.DescribeFieldResult objFieldDescribe = Quote.Layers_of_shingles__c.getDescribe();
+        return getMappedPicklistValues(objFieldDescribe);
+    }
+
+    @AuraEnabled
+    public static Map<String, String> getQuoteFinanceTypePicklistValues(){
+        Schema.DescribeFieldResult objFieldDescribe = Quote.Accepted_Finance_Type__c.getDescribe();
+        return getMappedPicklistValues(objFieldDescribe);
+    }
+
+    @AuraEnabled
+    public static void reportSale(String opportunityId, String quoteId, String appointmentId, Map<String, Object> appointmentUpdates, Map<String, Object> quoteUpdates){
        try {
            updateAppointment(appointmentId, appointmentUpdates);
-           updateQuote(quoteId);
+           updateQuote(quoteId, quoteUpdates);
            updateOpportunity(opportunityId);
        } catch (DmlException e) {
             System.debug('Error updating');
             System.debug(e);
+
+            throw e;
        }
     }
     
@@ -80,16 +92,17 @@ public with sharing class OpportunitySalesReportingController {
             } catch (DmlException e) {
                 System.debug('Error updating event');
                 System.debug(e);
+
+                throw e;
             }
         }
     }
 
     @TestVisible
-    private static void updateQuote(String quoteId){
-        Map<String, Object> quoteUpdates = new Map<String, Object>();
-        quoteUpdates.put('Status', 'Accepted');
+    private static void updateQuote(String quoteId, Map<String, Object> updates){
+        updates.put('Status', 'Accepted');
 
-        String soqlString = generateSoqlStringForUpdate('Quote', 'Id', quoteId, quoteUpdates);
+        String soqlString = generateSoqlStringForUpdate('Quote', 'Id', quoteId, updates);
 
         System.debug('update quote soqlString:');
         System.debug(soqlString);
@@ -100,10 +113,10 @@ public with sharing class OpportunitySalesReportingController {
         if (existingQuotes.size() > 0) {
             quote = new Quote();
 
-            for (String key: quoteUpdates.keySet()) {
+            for (String key: updates.keySet()) {
                 System.debug(key);
-                System.debug(quoteUpdates.get(key));
-                quote.put(key, quoteUpdates.get(key));
+                System.debug(updates.get(key));
+                quote.put(key, updates.get(key));
             }
             quote.put('Id', existingQuotes[0].Id);
 
@@ -114,6 +127,8 @@ public with sharing class OpportunitySalesReportingController {
             } catch (DmlException e) {
                 System.debug('Error updating quote');
                 System.debug(e);
+
+                throw e;
             }
         }
     }
@@ -121,8 +136,8 @@ public with sharing class OpportunitySalesReportingController {
     @TestVisible
     private static void updateOpportunity(String opportunityId){
         Map<String, Object> opportunityUpdates = new Map<String, Object>();
-        opportunityUpdates.put('Stage', 'Site Assessment');
-
+        opportunityUpdates.put('StageName', 'Site Assessment');
+        opportunityUpdates.put('Opportunity_Disposition__c', 'Closed Won Pending');
         String soqlString = generateSoqlStringForUpdate('Opportunity', 'Id', opportunityId, opportunityUpdates);
 
         System.debug('update opportunity soqlString:');
@@ -148,6 +163,8 @@ public with sharing class OpportunitySalesReportingController {
             } catch (DmlException e) {
                 System.debug('Error updating opportunity');
                 System.debug(e);
+
+                throw e;
             }
         }
     }
@@ -171,5 +188,18 @@ public with sharing class OpportunitySalesReportingController {
         soqlString += 'FROM ' + objectForUpdate + ' WHERE ' + matchField + ' = \'' + id + '\' FOR UPDATE';
 
         return soqlString;
+    }
+
+    @TestVisible
+    private static Map<String, String> getMappedPicklistValues(Schema.DescribeFieldResult objFieldDescribe) {
+        List<Schema.PicklistEntry> lstPicklistValues = objFieldDescribe.getPickListValues();
+        Map <String, String> mappedPicklistValues = new Map<String, String>();
+
+        for (Schema.PicklistEntry objPicklist : lstPicklistValues) {
+            System.debug('Value = ' +objPicklist.getValue() +' , Label = ' +objPicklist.getLabel());
+            mappedPicklistValues.put(objPicklist.getValue(), objPicklist.getLabel());
+        }
+
+        return mappedPicklistValues;
     }
 }

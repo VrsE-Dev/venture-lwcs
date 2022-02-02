@@ -105,8 +105,20 @@ export default class OpportunitySalesReporting extends LightningElement {
         });
 
         this.appointmentColumns = [
-            { label: 'Date', fieldName: 'StartDateTime' },
-            { label: 'Status', fieldName: 'Appointment_Status__c' }
+            { 
+                label: 'Date', 
+                fieldName: 'StartDateTime',
+                type: "date",
+                typeAttributes: {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }
+            },
+            { label: 'Status', fieldName: 'Appointment_Status__c' },
+            { label: 'Subject', fieldName: 'Subject' }
         ];
 
         this.appointments = await getAppointments({opportunityId: this.opportunity.Id});

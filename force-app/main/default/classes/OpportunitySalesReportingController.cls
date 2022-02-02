@@ -3,7 +3,7 @@ public with sharing class OpportunitySalesReportingController {
     public static List<Event> getAppointments(String opportunityId) {
         List<Event> appointments = new List<Event>();
 
-        for (Event appointment: [SELECT Id, WhatId, StartDateTime, Appointment_Status__c, Notes__c FROM Event WHERE WhatId = :opportunityId ORDER BY StartDateTime DESC]) {
+        for (Event appointment: [SELECT Id, WhatId, StartDateTime, Appointment_Status__c, Notes__c, Subject FROM Event WHERE WhatId = :opportunityId ORDER BY StartDateTime DESC]) {
             appointments.add(appointment);
         }
 

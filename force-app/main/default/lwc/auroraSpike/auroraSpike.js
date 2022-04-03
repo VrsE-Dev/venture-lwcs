@@ -27,6 +27,20 @@ import PV_SYSTEM_ACCOUNT from '@salesforce/schema/PV_System__c.Account__c';
 import PV_SYSTEM_STATUS from '@salesforce/schema/PV_System__c.Status__c';
 
 import PV_SYSTEM_INVERTER from '@salesforce/schema/PV_SYSTEM__c.Inverter__c';
+import PV_SYSTEM_AURORA_INVERTER from '@salesforce/schema/PV_SYSTEM__c.Aurora_Inverter__c';
+
+import PV_SYSTEM_JANUARY_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.January_Simulated_kWh_Production__c';
+import PV_SYSTEM_FEBRUARY_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.February_Simulated_kWh_Production__c';
+import PV_SYSTEM_MARCH_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.March_Simulated_kWh_Production__c';
+import PV_SYSTEM_APRIL_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.April_Simulated_kWh_Production__c';
+import PV_SYSTEM_MAY_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.May_Simulated_kWh_Production__c';
+import PV_SYSTEM_JUNE_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.June_Simulated_kWh_Production__c';
+import PV_SYSTEM_JULY_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.July_Simulated_kWh_Production__c';
+import PV_SYSTEM_AUGUST_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.August_Simulated_kWh_Production__c';
+import PV_SYSTEM_SEPTEMBER_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.September_Simulated_kWh_Production__c';
+import PV_SYSTEM_OCTOBER_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.October_Simulated_kWh_Production__c';
+import PV_SYSTEM_NOVEMBER_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.November_Simulated_kWh_Production__c';
+import PV_SYSTEM_DECEMBER_SIMULATED_KWH_PRODUCTION from '@salesforce/schema/PV_SYSTEM__c.December_Simulated_kWh_Production__c';
 
 import PV_ARRAY from '@salesforce/schema/PV_Array__c';
 import PV_ARRAY_PANEL_WATTAGE from '@salesforce/schema/PV_Array__c.Panel_Wattage__c';
@@ -181,6 +195,23 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             pvSystemFields[PV_SYSTEM_STATUS.fieldApiName]           = 'Proposed';
             pvSystemFields[PV_SYSTEM_AURORA_INVERTER.fieldApiName]  = this.inverter;
 
+            console.log(this.designSummary.design.energy_production.monthly);
+            const monthlyProduction = this.designSummary.design.energy_production.monthly;
+            console.log('Saving production to pv system ' + JSON.stringify(monthlyProduction));
+
+            pvSystemFields[PV_SYSTEM_JANUARY_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[0];
+            pvSystemFields[PV_SYSTEM_FEBRUARY_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[1];
+            pvSystemFields[PV_SYSTEM_MARCH_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[2];
+            pvSystemFields[PV_SYSTEM_APRIL_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[3];
+            pvSystemFields[PV_SYSTEM_MAY_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[4];
+            pvSystemFields[PV_SYSTEM_JUNE_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[5];
+            pvSystemFields[PV_SYSTEM_JULY_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[6];
+            pvSystemFields[PV_SYSTEM_AUGUST_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[7];
+            pvSystemFields[PV_SYSTEM_SEPTEMBER_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[8];
+            pvSystemFields[PV_SYSTEM_OCTOBER_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[9];
+            pvSystemFields[PV_SYSTEM_NOVEMBER_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[10];
+            pvSystemFields[PV_SYSTEM_DECEMBER_SIMULATED_KWH_PRODUCTION.fieldApiName] = monthlyProduction[11];
+            
             if (this.hasInverter) {
                 pvSystemFields[PV_SYSTEM_INVERTER.fieldApiName] = this.inverter;
             }
@@ -266,7 +297,7 @@ export default class AuroraSpike extends NavigationMixin(LightningElement) {
             }]);
         } catch (e) {
             console.log('error from inside aurora spike save:');
-            console.log(JSON.stringify(e, undefined, 2));
+            console.log(e);
             this.saveError = true;
             this.disabled = false;
 

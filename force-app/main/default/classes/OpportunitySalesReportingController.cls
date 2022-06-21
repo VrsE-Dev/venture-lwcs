@@ -52,10 +52,24 @@ public with sharing class OpportunitySalesReportingController {
     }
 
     @AuraEnabled
-    public static void reportSale(String opportunityId, String quoteId, String appointmentId, Map<String, Object> appointmentUpdates, Map<String, Object> quoteUpdates){
+    public static void reportSaleIncomplete(String opportunityId, String quoteId, String appointmentId, Map<String, Object> appointmentUpdates, Map<String, Object> quoteUpdates){
        try {
            updateAppointment(appointmentId, appointmentUpdates);
-           updateQuote(quoteId, quoteUpdates);
+           updateQuotesIncomplete(quoteId, quoteUpdates);
+           updateOpportunity(opportunityId);
+       } catch (DmlException e) {
+            System.debug('Error updating');
+            System.debug(e);
+
+            throw e;
+       }
+    }
+
+    @AuraEnabled
+    public static void reportSaleComplete(String opportunityId, String appointmentId, Map<String, Object> appointmentUpdates){
+       try {
+           updateAppointment(appointmentId, appointmentUpdates);
+           updateQuoteComplete(quoteId, quoteUpdates);
            updateOpportunity(opportunityId);
        } catch (DmlException e) {
             System.debug('Error updating');
@@ -99,7 +113,7 @@ public with sharing class OpportunitySalesReportingController {
     }
 
     @TestVisible
-    private static void updateQuote(String quoteId, Map<String, Object> updates){
+    private static void updateQuoteIncomplete(String quoteId, Map<String, Object> updates){
         updates.put('Status', 'Accepted');
 
         String soqlString = generateSoqlStringForUpdate('Quote', 'Id', quoteId, updates);
@@ -124,6 +138,38 @@ public with sharing class OpportunitySalesReportingController {
 
             try {
                 update quote;
+            } catch (DmlException e) {
+                System.debug('Error updating quote');
+                System.debug(e);
+
+                throw e;
+            }
+        }
+    }
+
+    @TestVisible
+    private static void updateQuoteComplete(){
+        Quote[] relatedQuotes = this.getQuotes();
+        
+        for (Quote relatedQuote: relatedQuotes) {
+            Map<String, Object> updates = new Map<String, Object>();
+            updates.put('Status', 'Presented');
+
+            String soqlString = generateSoqlStringForUpdate('Quote', 'Id', relatedQuote.id, updates);
+            System.debug('update quote soqlString:');
+            System.debug(soqlString);
+
+            for (String key: updates.keySet()) {
+                System.debug(key);
+                System.debug(updates.get(key));
+                relatedQuote.put(key, updates.get(key));
+            }
+            relatedQuote.put('Id', existingQuotes[0].Id);
+
+            System.debug(relatedQuote);
+
+            try {
+                update relatedQuote;
             } catch (DmlException e) {
                 System.debug('Error updating quote');
                 System.debug(e);

@@ -54,7 +54,8 @@ public class OpportunitySalesReportingControllerTest {
             Notes__c = 'Test Notes',
             WhatId = opportunity.Id,
             DurationInMinutes = 60,
-            Type = 'Meeting'
+            Type = 'Meeting',
+            Reschedule_Reason__c = 'No Show'
         );
 
         insert appointment;
@@ -116,7 +117,7 @@ public class OpportunitySalesReportingControllerTest {
         System.assert(quoteFinanceTypePicklistValues.size() > 0);
     }
 
-    @isTest static void reportSale() {
+    @isTest static void reportSaleIncomplete() {
 		Opportunity opportunity = configureOpportunity();
 
         Event appointment = new Event(
@@ -149,7 +150,7 @@ public class OpportunitySalesReportingControllerTest {
         quoteUpdates.put('Layers_of_shingles__c', '2');
         
         Test.startTest();
-        OpportunitySalesReportingController.reportSale(opportunity.Id, quote.Id, appointment.Id, appointmentUpdates, quoteUpdates);
+        OpportunitySalesReportingController.reportSaleIncomplete(opportunity.Id, quote.Id, appointment.Id, appointmentUpdates, quoteUpdates);
         List<Event> appointments = OpportunitySalesReportingController.getAppointments(opportunity.Id);
         List<Quote> quotes = OpportunitySalesReportingController.getQuotes(opportunity.Id);
         Test.stopTest();
@@ -162,6 +163,48 @@ public class OpportunitySalesReportingControllerTest {
         
         System.assertEquals(updatedQuote.Id, quote.Id);
         System.assertEquals(updatedQuote.Status, 'Accepted');
+    }
+
+    @isTest static void reportSaleComplete() {
+		Opportunity opportunity = configureOpportunity();
+
+        Event appointment = new Event(
+            StartDateTime = System.Today(),
+            Appointment_Status__c = 'Confirmed',
+            Notes__c = 'Test Notes',
+            WhatId = opportunity.Id,
+            DurationInMinutes = 60,
+            Type = 'Meeting'
+        );
+
+        insert appointment;
+        
+        Quote quote = new Quote(
+            Name='Test Quote',
+            OpportunityId = opportunity.Id,
+            Finance__c = False
+        );
+
+        insert quote;
+        
+        Map<String, Object> appointmentUpdates = new Map<String, Object>();
+        appointmentUpdates.put('Appointment_Status__c', 'Cancelled');
+        appointmentUpdates.put('Notes__c', 'Test notes');
+        
+        Test.startTest();
+        OpportunitySalesReportingController.reportSaleComplete(opportunity.Id, appointment.Id, appointmentUpdates);
+        List<Event> appointments = OpportunitySalesReportingController.getAppointments(opportunity.Id);
+        List<Quote> quotes = OpportunitySalesReportingController.getQuotes(opportunity.Id);
+        Test.stopTest();
+        
+        Event updatedAppointment = appointments.get(0);
+        Quote updatedQuote = quotes.get(0);
+        
+        System.assertEquals(updatedAppointment.Id, appointment.Id);
+        System.assertEquals(updatedAppointment.Appointment_Status__c, 'Cancelled');
+        
+        System.assertEquals(updatedQuote.Id, quote.Id);
+        System.assertEquals(updatedQuote.Status, 'Presented');
     }
 
     // @isTest static void updateAppointment() {

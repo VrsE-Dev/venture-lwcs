@@ -34,7 +34,6 @@
                             >
                             </lightning-datatable>
                         </div>
-    
 
                         <div class="slds-m-top_small">
                             <lightning-button
@@ -81,15 +80,35 @@
                                 value={appointmentSelected.Notes__c}
                                 label="Result notes">
                             </lightning-input>
+
+                            <lightning-input 
+                                if:true="{isAppointmentStatusCompletedSelected}"
+                                name="reasonNotMovingForward" 
+                                type="text" 
+                                class="reasonNotMovingForward"
+                                value={appointmentSelected.Reason_Not_Moving_Forward}
+                                label="Reason not moving forward">
+                            </lightning-input>
                         </div>
                         
                         <div class="slds-m-top_small">
                             <lightning-button
+                                if:false="{isAppointmentStatusCompletedSelected}"
                                 class="slds-m-right_large"
                                 variant="brand"
                                 type="submit"
                                 name="save"
                                 label="Next"
+                                onclick={saveAppointmentUpdate}
+                            >
+                            </lightning-button>
+                            <lightning-button
+                                if:true="{isAppointmentStatusCompletedSelected}"
+                                class="slds-m-right_large"
+                                variant="brand"
+                                type="submit"
+                                name="save"
+                                label="Save"
                                 onclick={saveAppointmentUpdate}
                             >
                             </lightning-button>
@@ -201,9 +220,9 @@
                                     class="slds-m-right_large"
                                     variant="brand"
                                     type="submit"
-                                    name="save"
+                                    name="saveIncomplete"
                                     label="Save"
-                                    onclick={save}
+                                    onclick={saveIncomplete}
                                     disabled={step.invalid}
                                 >
                                 </lightning-button>

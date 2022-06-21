@@ -10,15 +10,19 @@ import getQuoteShingleLayersPicklistValues from '@salesforce/apex/OpportunitySal
 import getQuoteFinanceTypePicklistValues from '@salesforce/apex/OpportunitySalesReportingController.getQuoteFinanceTypePicklistValues';
 import getAppointments from '@salesforce/apex/OpportunitySalesReportingController.getAppointments';
 import getAppointmentStatusPicklistValues from '@salesforce/apex/OpportunitySalesReportingController.getAppointmentStatusPicklistValues';
-import reportSale from '@salesforce/apex/OpportunitySalesReportingController.reportSale';
+import reportSaleIncomplete from '@salesforce/apex/OpportunitySalesReportingController.reportSaleIncomplete';
+import reportSaleComplete from '@salesforce/apex/OpportunitySalesReportingController.reportSaleComplete';
 
 import OPPORTUNITY_ID from '@salesforce/schema/Opportunity.Id';
 import QUOTE_NOTES_FROM_SALES_REP from '@salesforce/schema/Quote.Notes_from_Sales_Rep__c';
 import QUOTE_ROOF_AGE from '@salesforce/schema/Quote.Roof_age__c';
 import QUOTE_LAYERS_OF_SHINGLES from '@salesforce/schema/Quote.Layers_of_shingles__c';
 import QUOTE_ACCEPTED_FINANCE_TYPE from '@salesforce/schema/Quote.Accepted_Finance_Type__c'
+import QUOTE_STATUS from '@salesforce/schema/Quoote.Status';
+
 import APPOINTMENT_STATUS from '@salesforce/schema/Event.Appointment_Status__c';
 import APPOINTMENT_NOTES from '@salesforce/schema/Event.Notes__c';
+import APPOINTMENT_REASON_NOT_MOVING_FORWARD from '@salesforce/schema/Event.Appointment_Reason_Not_Moving_Forward__c';
 
 import { parseRecord, showToast } from 'c/common_utils';
 
@@ -172,6 +176,10 @@ export default class OpportunitySalesReporting extends LightningElement {
         console.log(JSON.stringify(this.quotes, undefined, 2));
     }
 
+    get isAppointmentStatusCompletedSelected() {
+        return this.appointmentSelected.Appointment_Status__c === 'Completed'
+    }
+
     incrementStepCurrent() {
         this.currentStep += 1;
         this.steps.forEach((step, index) => {
@@ -291,11 +299,40 @@ export default class OpportunitySalesReporting extends LightningElement {
         }
     }
 
-    async save() {
+    async saveComplete() {
         const appointmentUpdates = {};
         appointmentUpdates[APPOINTMENT_STATUS.fieldApiName] = this.appointmentSelected.Appointment_Status__c;
         appointmentUpdates[APPOINTMENT_NOTES.fieldApiName] = this.appointmentSelected.Notes__c;
+        appointmentUpdates[APPOINTMENT_REASON_NOT_MOVING_FORWARD.fieldApiName] = this.appointmentSelected.Reason_Not_Moving_Forward__c;
 
+        try {
+            this.loading = true;
+
+            console.log(JSON.stringify({
+                opportunityId: this.opportunity.Id,
+                quoteId: this.quoteSelected.Id,
+                appointmentId: this.appointmentSelected.Id,
+                appointmentUpdates,
+            }, undefined, 2));
+
+            await reportSaleComplete({
+                opportunityId: this.opportunity.Id,
+                appointmentId: this.appointmentSelected.Id,
+                appointmentUpdates
+            });
+
+            this.dispatchEvent(showToast('success', 'Your sale has been recorded!'));
+            this.cancel();
+        } catch(e) {
+            this.loading = false;
+            this.createErrorMsg(e)
+        }
+    }
+
+    async saveIncomplete() {
+        const appointmentUpdates = {};
+        appointmentUpdates[APPOINTMENT_STATUS.fieldApiName] = this.appointmentSelected.Appointment_Status__c;
+        appointmentUpdates[APPOINTMENT_NOTES.fieldApiName] = this.appointmentSelected.Notes__c;
 
         const quoteUpdates = {};
         quoteUpdates[QUOTE_NOTES_FROM_SALES_REP.fieldApiName] = this.quoteSelected.Notes_from_Sales_Rep__c;
@@ -314,7 +351,7 @@ export default class OpportunitySalesReporting extends LightningElement {
                 quoteUpdates
             }, undefined, 2));
 
-            await reportSale({
+            await reportSaleIncomplete({
                 opportunityId: this.opportunity.Id,
                 quoteId: this.quoteSelected.Id,
                 appointmentId: this.appointmentSelected.Id,
@@ -325,36 +362,39 @@ export default class OpportunitySalesReporting extends LightningElement {
             this.dispatchEvent(showToast('success', 'Your sale has been recorded!'));
             this.cancel();
         } catch (e) {
-            console.log(JSON.stringify(e, undefined, 2));
-
             this.loading = false;
+            this.createErrorMsg(e)
+        }
+    }
 
-            let errorMsg = '';
-            if (e?.body?.fieldErrors) {
-                Object.keys(e.body.fieldErrors).forEach(fieldKey => {
-                    const fieldKeyErrors = e.body.fieldErrors[fieldKey];
-                    fieldKeyErrors.forEach(fieldKeyError => {
-                        if (fieldKeyError.message) {
-                            errorMsg += fieldKeyError.message + '\n'; 
-                        }
-                    });
-                });
-            }
+    createErrorMsg(e) {
+        console.log(JSON.stringify(e, undefined, 2));
 
-            if (e?.body?.pageErrors) {
-                const pageErrors = e.body.pageErrors;
-                pageErrors.forEach(pageError => {
-                    if (pageError.message) {
-                        errorMsg += pageError.message + '\n' 
+        let errorMsg = '';
+        if (e?.body?.fieldErrors) {
+            Object.keys(e.body.fieldErrors).forEach(fieldKey => {
+                const fieldKeyErrors = e.body.fieldErrors[fieldKey];
+                fieldKeyErrors.forEach(fieldKeyError => {
+                    if (fieldKeyError.message) {
+                        errorMsg += fieldKeyError.message + '\n'; 
                     }
                 });
-            }
-
-            if (errorMsg === '') {
-                errorMsg = JSON.stringify(e, undefined, 2);
-            }
-
-            this.dispatchEvent(showToast('error', `Error recording sale: \n ${errorMsg}`));
+            });
         }
+
+        if (e?.body?.pageErrors) {
+            const pageErrors = e.body.pageErrors;
+            pageErrors.forEach(pageError => {
+                if (pageError.message) {
+                    errorMsg += pageError.message + '\n' 
+                }
+            });
+        }
+
+        if (errorMsg === '') {
+            errorMsg = JSON.stringify(e, undefined, 2);
+        }
+
+        this.dispatchEvent(showToast('error', `Error recording sale: \n ${errorMsg}`));
     }
 }

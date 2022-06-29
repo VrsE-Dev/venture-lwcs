@@ -17,12 +17,11 @@ import OPPORTUNITY_ID from '@salesforce/schema/Opportunity.Id';
 import QUOTE_NOTES_FROM_SALES_REP from '@salesforce/schema/Quote.Notes_from_Sales_Rep__c';
 import QUOTE_ROOF_AGE from '@salesforce/schema/Quote.Roof_age__c';
 import QUOTE_LAYERS_OF_SHINGLES from '@salesforce/schema/Quote.Layers_of_shingles__c';
-import QUOTE_ACCEPTED_FINANCE_TYPE from '@salesforce/schema/Quote.Accepted_Finance_Type__c'
-import QUOTE_STATUS from '@salesforce/schema/Quoote.Status';
+import QUOTE_ACCEPTED_FINANCE_TYPE from '@salesforce/schema/Quote.Accepted_Finance_Type__c';
 
 import APPOINTMENT_STATUS from '@salesforce/schema/Event.Appointment_Status__c';
-import APPOINTMENT_NOTES from '@salesforce/schema/Event.Notes__c';
-import APPOINTMENT_REASON_NOT_MOVING_FORWARD from '@salesforce/schema/Event.Appointment_Reason_Not_Moving_Forward__c';
+import APPOINTMENT_APPOINTMENT_NOTES from '@salesforce/schema/Event.Appointment_Notes__c';
+import APPOINTMENT_REASON_NOT_MOVING_FORWARD from '@salesforce/schema/Event.Reason_Not_Moving_Forward__c';
 
 import { parseRecord, showToast } from 'c/common_utils';
 
@@ -236,7 +235,7 @@ export default class OpportunitySalesReporting extends LightningElement {
     }
 
     saveAppointmentUpdate() {
-        this.appointmentSelected.Notes__c = this.template.querySelector('.resultNotes').value;
+        this.appointmentSelected.Appointment_Notes__c = this.template.querySelector('.resultNotes').value;
         this.incrementStepCurrent();
     }
 
@@ -295,22 +294,50 @@ export default class OpportunitySalesReporting extends LightningElement {
             this.quoteSelected.Layers_of_shingles__c &&
             this.quoteSelected.Accepted_Finance_Type__c
         ) {
-                this.setStepValidity(true);
+            this.setStepValidity(true);
+        }
+    }
+
+    checkCompletedValidity() {
+        this.setStepValidity(false);
+
+        if (
+            this.appointmentSelected.Appointment_Notes__c?.length > 100 &&
+            this.appointmentSelected.Reason_Not_Moving_Forward__c
+        ) {
+            this.setStepValidity(true);
         }
     }
 
     async saveComplete() {
+        console.log('save complete clicked')
+        this.appointmentSelected.Appointment_Notes__c = this.template.querySelector('.resultNotes').value;
+        this.appointmentSelected.Reason_Not_Moving_Forward__c = this.template.querySelector('.reasonNotMovingForward').value;
+
+        this.checkCompletedValidity();
+
+        console.log(JSON.stringify(this.steps))
+        console.log(JSON.stringify(this.currentStep - 1))
+        if (this.steps[this.currentStep - 1]?.invalid) {
+            return;
+        }
+
+        console.log('not invalid')
+        console.log(this.appointmentSelected.Appointment_Status__c)
+        console.log(this.appointmentSelected.Appointment_Notes__c)
+        console.log(this.appointmentSelected.Reason_Not_Moving_Forward__c)
+
         const appointmentUpdates = {};
         appointmentUpdates[APPOINTMENT_STATUS.fieldApiName] = this.appointmentSelected.Appointment_Status__c;
-        appointmentUpdates[APPOINTMENT_NOTES.fieldApiName] = this.appointmentSelected.Notes__c;
+        appointmentUpdates[APPOINTMENT_APPOINTMENT_NOTES.fieldApiName] = this.appointmentSelected.Appointment_Notes__c;
         appointmentUpdates[APPOINTMENT_REASON_NOT_MOVING_FORWARD.fieldApiName] = this.appointmentSelected.Reason_Not_Moving_Forward__c;
 
         try {
+            console.log('about to report complete complete clicked')
             this.loading = true;
 
             console.log(JSON.stringify({
                 opportunityId: this.opportunity.Id,
-                quoteId: this.quoteSelected.Id,
                 appointmentId: this.appointmentSelected.Id,
                 appointmentUpdates,
             }, undefined, 2));
@@ -324,6 +351,7 @@ export default class OpportunitySalesReporting extends LightningElement {
             this.dispatchEvent(showToast('success', 'Your sale has been recorded!'));
             this.cancel();
         } catch(e) {
+            console.log('error')
             this.loading = false;
             this.createErrorMsg(e)
         }
@@ -332,7 +360,7 @@ export default class OpportunitySalesReporting extends LightningElement {
     async saveIncomplete() {
         const appointmentUpdates = {};
         appointmentUpdates[APPOINTMENT_STATUS.fieldApiName] = this.appointmentSelected.Appointment_Status__c;
-        appointmentUpdates[APPOINTMENT_NOTES.fieldApiName] = this.appointmentSelected.Notes__c;
+        appointmentUpdates[APPOINTMENT_APPOINTMENT_NOTES.fieldApiName] = this.appointmentSelected.Appointment_Notes__c;
 
         const quoteUpdates = {};
         quoteUpdates[QUOTE_NOTES_FROM_SALES_REP.fieldApiName] = this.quoteSelected.Notes_from_Sales_Rep__c;

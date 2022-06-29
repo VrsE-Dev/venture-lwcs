@@ -3,7 +3,7 @@ public with sharing class OpportunitySalesReportingController {
     public static List<Event> getAppointments(String opportunityId) {
         List<Event> appointments = new List<Event>();
 
-        for (Event appointment: [SELECT Id, WhatId, StartDateTime, Appointment_Status__c, Notes__c, Subject FROM Event WHERE WhatId = :opportunityId ORDER BY StartDateTime DESC]) {
+        for (Event appointment: [SELECT Id, WhatId, StartDateTime, Appointment_Status__c, Appointment_Notes__c, Subject FROM Event WHERE WhatId = :opportunityId ORDER BY StartDateTime DESC]) {
             appointments.add(appointment);
         }
 
@@ -55,7 +55,7 @@ public with sharing class OpportunitySalesReportingController {
     public static void reportSaleIncomplete(String opportunityId, String quoteId, String appointmentId, Map<String, Object> appointmentUpdates, Map<String, Object> quoteUpdates){
        try {
            updateAppointment(appointmentId, appointmentUpdates);
-           updateQuotesIncomplete(quoteId, quoteUpdates);
+           updateQuoteIncomplete(quoteId, quoteUpdates);
            updateOpportunity(opportunityId);
        } catch (DmlException e) {
             System.debug('Error updating');
@@ -69,7 +69,7 @@ public with sharing class OpportunitySalesReportingController {
     public static void reportSaleComplete(String opportunityId, String appointmentId, Map<String, Object> appointmentUpdates){
        try {
            updateAppointment(appointmentId, appointmentUpdates);
-           updateQuoteComplete(quoteId, quoteUpdates);
+           updateQuoteComplete(opportunityId);
            updateOpportunity(opportunityId);
        } catch (DmlException e) {
             System.debug('Error updating');
@@ -148,8 +148,8 @@ public with sharing class OpportunitySalesReportingController {
     }
 
     @TestVisible
-    private static void updateQuoteComplete(){
-        Quote[] relatedQuotes = this.getQuotes();
+    private static void updateQuoteComplete(String opportunityId){
+        Quote[] relatedQuotes = getQuotes(opportunityId);
         
         for (Quote relatedQuote: relatedQuotes) {
             Map<String, Object> updates = new Map<String, Object>();
@@ -164,7 +164,6 @@ public with sharing class OpportunitySalesReportingController {
                 System.debug(updates.get(key));
                 relatedQuote.put(key, updates.get(key));
             }
-            relatedQuote.put('Id', existingQuotes[0].Id);
 
             System.debug(relatedQuote);
 

@@ -51,7 +51,7 @@ public class OpportunitySalesReportingControllerTest {
         Event appointment = new Event(
             StartDateTime = System.Today(),
             Appointment_Status__c = 'Confirmed',
-            Notes__c = 'Test Notes',
+            Appointment_Notes__c = 'Test Notes',
             WhatId = opportunity.Id,
             DurationInMinutes = 60,
             Type = 'Meeting',
@@ -123,7 +123,7 @@ public class OpportunitySalesReportingControllerTest {
         Event appointment = new Event(
             StartDateTime = System.Today(),
             Appointment_Status__c = 'Confirmed',
-            Notes__c = 'Test Notes',
+            Appointment_Notes__c = 'Test Notes',
             WhatId = opportunity.Id,
             DurationInMinutes = 60,
             Type = 'Meeting'
@@ -141,7 +141,7 @@ public class OpportunitySalesReportingControllerTest {
         
         Map<String, Object> appointmentUpdates = new Map<String, Object>();
         appointmentUpdates.put('Appointment_Status__c', 'Cancelled');
-        appointmentUpdates.put('Notes__c', 'Test notes');
+        appointmentUpdates.put('Appointment_Notes__c', 'Test notes');
         
         
         Map<String, Object> quoteUpdates = new Map<String, Object>();
@@ -171,7 +171,7 @@ public class OpportunitySalesReportingControllerTest {
         Event appointment = new Event(
             StartDateTime = System.Today(),
             Appointment_Status__c = 'Confirmed',
-            Notes__c = 'Test Notes',
+            Appointment_Notes__c = 'Test Notes',
             WhatId = opportunity.Id,
             DurationInMinutes = 60,
             Type = 'Meeting'
@@ -188,8 +188,8 @@ public class OpportunitySalesReportingControllerTest {
         insert quote;
         
         Map<String, Object> appointmentUpdates = new Map<String, Object>();
-        appointmentUpdates.put('Appointment_Status__c', 'Cancelled');
-        appointmentUpdates.put('Notes__c', 'Test notes');
+        appointmentUpdates.put('Appointment_Status__c', 'Completed');
+        appointmentUpdates.put('Appointment_Notes__c', 'Test notes');
         
         Test.startTest();
         OpportunitySalesReportingController.reportSaleComplete(opportunity.Id, appointment.Id, appointmentUpdates);
@@ -201,7 +201,7 @@ public class OpportunitySalesReportingControllerTest {
         Quote updatedQuote = quotes.get(0);
         
         System.assertEquals(updatedAppointment.Id, appointment.Id);
-        System.assertEquals(updatedAppointment.Appointment_Status__c, 'Cancelled');
+        System.assertEquals(updatedAppointment.Appointment_Status__c, 'Completed');
         
         System.assertEquals(updatedQuote.Id, quote.Id);
         System.assertEquals(updatedQuote.Status, 'Presented');

@@ -62,7 +62,6 @@
                 <template if:true={step.current}>
                     <div key={step.id}>
                         <h3>Update Appointment:</h3>
-
                         <div>
                             <lightning-combobox
                                 name="status"
@@ -73,6 +72,7 @@
                                 onchange={handleAppointmentStatusPicklistChanged}>
                             </lightning-combobox>
 
+                            
                             <lightning-input 
                                 name="resultNotes" 
                                 type="text" 
@@ -82,18 +82,34 @@
                             </lightning-input>
 
                             <lightning-input 
-                                if:true="{isAppointmentStatusCompletedSelected}"
+                                if:true={isAppointmentStatusCompletedSelected}
                                 name="reasonNotMovingForward" 
                                 type="text" 
                                 class="reasonNotMovingForward"
                                 value={appointmentSelected.Reason_Not_Moving_Forward}
                                 label="Reason not moving forward">
                             </lightning-input>
+
+                            <div>
+                                <label class="slds-text-body_small slds-text-color_error" if:true={step.invalid}>
+                                    Must include Result notes and Reason not moving forward. Result notes must have at least 100 characters
+                                </label>
+                            </div>
                         </div>
                         
                         <div class="slds-m-top_small">
+                            <template if:true={loading}>
+                                <lightning-spinner 
+                                    class="slds-is-relative slds-m-right_x-large slds-m-left_small"
+                                    variant="brand"
+                                    alternative-text="Loading" 
+                                    size="small"
+                                >
+                                </lightning-spinner>
+                            </template>
+                            
                             <lightning-button
-                                if:false="{isAppointmentStatusCompletedSelected}"
+                                if:false={isAppointmentStatusCompletedSelected}
                                 class="slds-m-right_large"
                                 variant="brand"
                                 type="submit"
@@ -102,16 +118,18 @@
                                 onclick={saveAppointmentUpdate}
                             >
                             </lightning-button>
-                            <lightning-button
-                                if:true="{isAppointmentStatusCompletedSelected}"
-                                class="slds-m-right_large"
-                                variant="brand"
-                                type="submit"
-                                name="save"
-                                label="Save"
-                                onclick={saveAppointmentUpdate}
-                            >
-                            </lightning-button>
+                            <template if:false={loading}>
+                                <lightning-button
+                                    if:true={isAppointmentStatusCompletedSelected}
+                                    class="slds-m-right_large"
+                                    variant="brand"
+                                    type="submit"
+                                    name="save"
+                                    label="Save"
+                                    onclick={saveComplete}
+                                >
+                                </lightning-button>
+                            </template>
                             <lightning-button
                                 variant="neutral"
                                 name="cancel"
